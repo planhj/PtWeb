@@ -105,7 +105,6 @@ public class AuthController {
     @Transactional
     public UserSessionResponseDTO register(@RequestBody RegisterRequestDTO register) {
         log.info("Received register request: {}", register.getEmail());
-        log.info("这里111111111111111111111111111");
         if (StringUtils.isEmpty(register.getEmail())) {
             throw new APIGenericException(MISSING_PARAMETERS, "Email parameter is required");
         }

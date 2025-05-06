@@ -65,3 +65,18 @@ CREATE TABLE IF NOT EXISTS peers (
 );
 
 CREATE INDEX  IDXmmvk33liy7j5u9e4qhxw2d7h5 ON peers (update_at);
+CREATE INDEX  IDXmmvk33liy7j5u9e4qhxw2d7h5 ON peers (update_at);
+
+create table categories
+(
+    id   bigint auto_increment
+        primary key,
+    icon varchar(255) not null,
+    name varchar(255) not null,
+    slug varchar(255) not null,
+    constraint UKoul14ho7bctbefv8jywp5v3i2
+        unique (slug)
+);
+
+create index IDXoul14ho7bctbefv8jywp5v3i2
+    on categories (slug);
