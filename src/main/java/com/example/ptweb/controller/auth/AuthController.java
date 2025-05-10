@@ -62,6 +62,7 @@ public class AuthController {
             authenticationService.checkAccountLoginAttempts(ip);
             throw new APIGenericException(AUTHENTICATION_FAILED);
         }
+        //
         log.info(login.getPassword());
         log.info(user.getUsername());
         log.info(user.getPersonalAccessToken());
