@@ -29,7 +29,7 @@ public class RedisConfig {
         redisCacheConfiguration = redisCacheConfiguration
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(StringRedisSerializer.UTF_8))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(serializer()))
-                .prefixCacheNameWith("sapling:")
+                .prefixCacheNameWith("ptWeb:")
                 .entryTtl(Duration.ofMinutes(3L));
         return RedisCacheManager
                 .builder(redisConnectionFactory)

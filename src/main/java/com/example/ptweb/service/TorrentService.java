@@ -7,6 +7,7 @@ import com.example.ptweb.controller.torrent.dto.request.SearchTorrentRequestDTO;
 import com.example.ptweb.entity.Category;
 import com.example.ptweb.entity.PromotionPolicy;
 import com.example.ptweb.entity.Torrent;
+import com.example.ptweb.entity.TransferHistory;
 import com.example.ptweb.mapper.TorrentMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -107,4 +108,5 @@ public class TorrentService {
                 .eq(Torrent::getUserId, userId)
                 .orderByDesc(Torrent::getId));
     }
+
 }
