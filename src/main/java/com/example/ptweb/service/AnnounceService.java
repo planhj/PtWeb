@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.NoSuchElementException;
@@ -85,17 +87,16 @@ public class AnnounceService {
         long lastDownloaded = peer.getDownloaded();
         long uploadedOffset = task.uploaded() - lastUploaded;
         long downloadedOffset = task.downloaded() - lastDownloaded;
-        Timestamp lastUpdateAt = torrent.getUpdatedAt();
-
+        Timestamp lastUpdateAt = peer.getUpdateAt();
         if (uploadedOffset < 0) uploadedOffset = task.uploaded();
         if (downloadedOffset < 0) downloadedOffset = task.downloaded();
 
         long nowMillis = Instant.now().toEpochMilli();
         long announceInterval = nowMillis - lastUpdateAt.toInstant().toEpochMilli();
 
-        peer.setUploaded(task.uploaded() + uploadedOffset);
-        peer.setDownloaded(task.downloaded() + downloadedOffset);
-        peer.setLeft(task.left());
+        peer.setUploaded(lastUploaded+ uploadedOffset);
+        peer.setDownloaded(lastDownloaded + downloadedOffset);
+        peer.setToGo(task.left());
         peer.setSeeder(task.left() == 0);
         peer.setUpdateAt(Timestamp.from(Instant.now()));
         peer.setSeedingTime(peer.getSeedingTime() + announceInterval);
@@ -107,14 +108,23 @@ public class AnnounceService {
         peer.setDownloadSpeed(downloadSpeed);
         peerService.save(peer);
 
+        if (peer.isSeeder()) {
+            double torrentSizeGB = torrent.getSize() / 1024.0 / 1024 / 1024.0; // Byte 转 GB
+            double weight = 1.0;
+            BigDecimal bonus = calculateBonusPoints(announceInterval, torrentSizeGB, weight);
+
+            user.setScore(user.getScore().add(bonus));
+            log.info("积分增长：{}",bonus);
+        }
+
         // 更新 User
-        user.setRealDownloaded(user.getRealDownloaded() + lastDownloaded);
-        user.setRealUploaded(user.getRealUploaded() + lastUploaded);
+        user.setRealDownloaded(user.getRealDownloaded() + downloadedOffset);
+        user.setRealUploaded(user.getRealUploaded() + uploadedOffset);
 //        long promoUp = (long) user.getGroup().getPromotionPolicy().applyUploadRatio(lastDownloaded);
 //        long promoDown = (long) user.getGroup().getPromotionPolicy().applyDownloadRatio(lastUploaded);
-        PromotionPolicy promotionPolicy = promotionService.getPromotionPolicy(torrent.getId());
-        long promoUp = (long) promotionPolicy.applyUploadRatio(lastUploaded);
-        long promoDown = (long) promotionPolicy.applyDownloadRatio(lastDownloaded);
+        PromotionPolicy promotionPolicy = promotionService.getPromotionPolicy(torrent.getPromotionPolicyId());
+        long promoUp = (long) promotionPolicy.applyUploadRatio(uploadedOffset);
+        long promoDown = (long) promotionPolicy.applyDownloadRatio(downloadedOffset);
 
         user.setUploaded(user.getUploaded() + promoUp);
         user.setDownloaded(user.getDownloaded() + promoDown);
@@ -124,11 +134,11 @@ public class AnnounceService {
         // 更新 TransferHistory
         TransferHistory history = transferHistoryService.getTransferHistory(user, torrent);
         if (history != null) {
-            if (history.getLeft() != 0 && task.left() == 0) {
+            if (history.getToGo() != 0 && task.left() == 0) {
                 history.setHaveCompleteHistory(true);
             }
             history.setUpdatedAt(Timestamp.from(Instant.now()));
-            history.setLeft(task.left());
+            history.setToGo(task.left());
             history.setUploaded(history.getUploaded() + promoUp);
             history.setDownloaded(history.getDownloaded() + promoDown);
             history.setActualUploaded(history.getActualUploaded() + uploadedOffset);
@@ -151,6 +161,20 @@ public class AnnounceService {
             peerService.delete(peer);
         }
     }
+    private BigDecimal calculateBonusPoints(long seedingTimeMillis, double torrentSizeGB, double weight) {
+        final double T0 = 30.0; // 周
+        final double B0 = 50000.0;
+
+        double Ti = seedingTimeMillis / 1000.0 / 60 / 60;
+        double Si = torrentSizeGB;
+        log.info("TI{},Si{},seedtime{}",Ti,Si,seedingTimeMillis);
+
+        double A = (1 - Math.pow(10, -Ti / T0)) * Si * weight;
+        double rawBonus = B0 * Math.atan(A);
+
+        return BigDecimal.valueOf(rawBonus).setScale(2, RoundingMode.HALF_UP);
+    }
+
 
     @NotNull
     private Peer createNewPeer(AnnounceTask task, User user) {
@@ -171,7 +195,7 @@ public class AnnounceService {
                 0,
                 0,
                 0,
-                user
+                user.getId()
         );
     }
 

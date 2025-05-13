@@ -37,7 +37,7 @@ public class TransferHistoryDTO {
         TorrentService torrentService = new TorrentService();
         Torrent torrent1 = torrentService.getTorrentById(transferHistory.getTorrentId());
         this.torrent = new TorrentBasicResponseDTO(torrent1);
-        this.left = transferHistory.getLeft();
+        this.left = transferHistory.getToGo();
         this.startedAt = transferHistory.getStartedAt();
         this.updatedAt = transferHistory.getUpdatedAt();
         this.uploaded = transferHistory.getUploaded();

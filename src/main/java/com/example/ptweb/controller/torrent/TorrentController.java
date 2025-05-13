@@ -1,5 +1,6 @@
 package com.example.ptweb.controller.torrent;
 
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.exception.NotPermissionException;
 import cn.dev33.satoken.stp.StpUtil;
@@ -45,6 +46,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -85,7 +87,7 @@ public class TorrentController {
     //private ThanksService thanksService;
 
     @PostMapping("/upload")
-    //@SaCheckPermission("torrent:upload")
+    @SaCheckLogin
     @Transactional
     public ResponseEntity<ResponsePojo> upload(@Valid @ModelAttribute TorrentUploadForm form) throws IOException {
         if (StringUtils.isEmpty(form.getTitle())) {
@@ -139,6 +141,9 @@ public class TorrentController {
             if (torrent != null) {
                 log.info("Saving torrent {} to {}", torrent.getId(), torrentsDirectory);
                 torrent = torrentService.save(torrent);
+                BigDecimal uploadReward = BigDecimal.valueOf(200);
+                user.setScore(user.getScore().add(uploadReward));
+                userService.save(user);
             }
             log.info(torrent.toString());
             return ResponseEntity.ok().body(new TorrentUploadSuccessResponseDTO(torrent.getId(), parser.getInfoHash(), form.getFile()));
@@ -228,9 +233,13 @@ public class TorrentController {
         if (user == null) {
             throw new APIGenericException(AUTHENTICATION_FAILED, "Neither passkey or session provided.");
         }
-//        if (!StpUtil.hasPermission(user.getId(), "torrent:download")) {
-//            throw new NotPermissionException("torrent:download");
-//        }
+        long downloaded = user.getDownloaded();
+        long uploaded = user.getUploaded();
+        double ratio = (downloaded == 0) ? Double.POSITIVE_INFINITY : (double) uploaded / downloaded;
+
+        if (ratio < 1) {
+            throw new APIGenericException(RATIO_TOO_LOW, String.format("您的分享率为 %.2f，低于1，无法执行该操作。", ratio));
+        }
         TrackerConfig trackerConfig = settingService.get(TrackerConfig.getConfigKey(), TrackerConfig.class);
         if (StringUtils.isEmpty(infoHash)) {
             throw new APIGenericException(MISSING_PARAMETERS, "You must provide a info_hash.");
@@ -250,12 +259,11 @@ public class TorrentController {
             throw new APIGenericException(TORRENT_FILE_MISSING, "This torrent's file are missing on this tracker, please contact with system administrator.");
         }
         TorrentParser parser = new TorrentParser(Files.readAllBytes(torrentFile.toPath()), false);
-        User user1 = userService.getUser(torrent.getUserId());
-        parser.rewriteForUser(trackerConfig.getTrackerURL(), user1.getPasskey(), user);
-        log.info("passkey: {}", user1.getPasskey());
+        //User user1 = userService.getUser(torrent.getUserId());
+        parser.rewriteForUser(trackerConfig.getTrackerURL(), user.getPasskey(), user);
+        log.info("userPasskey{}", user.getPasskey());
         String fileName = "[" + trackerConfig.getTorrentPrefix() + "] " + torrent.getTitle() + ".torrent";
         HttpHeaders header = new HttpHeaders();
-        log.info(fileName);
         header.set(HttpHeaders.CONTENT_TYPE, "application/x-bittorrent");
         header.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + URLEncodeUtil.urlEncode(fileName, false));
         return new HttpEntity<>(parser.save(), header);

@@ -27,7 +27,7 @@ public class Peer {
     private long downloaded;
 
     @TableField("to_go")
-    private long left;
+    private long toGo;
 
     private boolean seeder;
     private boolean partialSeeder;
@@ -40,6 +40,7 @@ public class Peer {
     private long uploadSpeed;
     private long downloadSpeed;
 
-    @TableField(exist = false)
-    private User user; // 不作为数据库字段
+
+    private long userId;
+
 }

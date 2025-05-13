@@ -127,7 +127,6 @@ public class AnnounceController {
         String[] ipv4 = request.getParameterValues("ipv4");
         String[] ipv6 = request.getParameterValues("ipv6");
         String passkey = gets.get("passkey");
-        log.info("sfmierngitnriugnbearjgjhb9rjgmb");
         if (StringUtils.isEmpty(passkey)) {
             throw new InvalidAnnounceException("You must re-download the torrent from tracker for seeding.");
         }
@@ -135,6 +134,7 @@ public class AnnounceController {
             throw new InvalidAnnounceException("Invalid passkey.");
         }
         checkClient();
+        log.info("信息{}",gets);
         checkAnnounceFields(gets);
         String peerId = gets.get("peer_id");
         long left = Long.parseLong(gets.get("left"));
@@ -179,7 +179,7 @@ public class AnnounceController {
         }
         String peers = BencodeUtil.convertToString(BencodeUtil.bittorrent().encode(generatePeersResponse(torrent, numWant, compact)));
         performanceMonitorService.recordStats(System.nanoTime() - ns);
-        log.debug("adiuaherfwehf9whg");
+        log.info("peerss{}",peers);
         return ResponseEntity.ok()
                 .header("Content-Type", "text/plain; charset=iso-8859-1")
                 .body(peers);
@@ -290,7 +290,7 @@ public class AnnounceController {
         PeerResult peers = gatherPeers(torrent.getInfoHash(), numWant);
         TransferHistoryService.PeerStatus peerStatus = transferHistoryService.getPeerStatus(torrent);
         Map<String, Object> dict = new HashMap<>();
-        dict.put("interval", randomInterval());
+        dict.put("interval", 60);
         dict.put("complete", peerStatus.complete());
         dict.put("incomplete", peerStatus.incomplete());
         dict.put("downloaded", peerStatus.downloaded());
@@ -319,7 +319,7 @@ public class AnnounceController {
             peerList.add(peerMap);
         }
         Map<String, Object> dict = new HashMap<>();
-        dict.put("interval", randomInterval());
+        dict.put("interval", 60);
         dict.put("complete", peerStatus.complete());
         dict.put("incomplete", peerStatus.incomplete());
         dict.put("downloaded", peerStatus.downloaded());
