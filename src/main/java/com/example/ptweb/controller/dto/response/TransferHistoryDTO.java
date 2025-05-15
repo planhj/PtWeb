@@ -16,7 +16,7 @@ import java.sql.Timestamp;
 public class TransferHistoryDTO {
     private long id;
     private UserBasicResponseDTO user;
-    private TorrentBasicResponseDTO torrent;
+    private long torrentId;
     private long left;
     private Timestamp startedAt;
     private Timestamp updatedAt;
@@ -34,9 +34,7 @@ public class TransferHistoryDTO {
         if (user1 != null && user1.getPrivacyLevel().ordinal() > PrivacyLevel.MEDIUM.ordinal()) {
             this.user = null;
         }
-        TorrentService torrentService = new TorrentService();
-        Torrent torrent1 = torrentService.getTorrentById(transferHistory.getTorrentId());
-        this.torrent = new TorrentBasicResponseDTO(torrent1);
+        this.torrentId=transferHistory.getTorrentId();
         this.left = transferHistory.getToGo();
         this.startedAt = transferHistory.getStartedAt();
         this.updatedAt = transferHistory.getUpdatedAt();

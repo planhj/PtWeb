@@ -7,10 +7,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.example.ptweb.config.SiteBasicConfig;
 import com.example.ptweb.config.TrackerConfig;
-import com.example.ptweb.controller.dto.response.ScrapeContainerDTO;
-import com.example.ptweb.controller.dto.response.TorrentInfoResponseDTO;
-import com.example.ptweb.controller.dto.response.TransferHistoryDTO;
-import com.example.ptweb.controller.dto.response.UserTinyResponseDTO;
+import com.example.ptweb.controller.dto.response.*;
 import com.example.ptweb.controller.torrent.dto.request.SearchTorrentRequestDTO;
 import com.example.ptweb.controller.torrent.dto.request.ThanksResponseDTO;
 import com.example.ptweb.controller.torrent.dto.request.TorrentScrapeRequestDTO;
@@ -24,6 +21,7 @@ import com.example.ptweb.exception.EmptyTorrentFileException;
 import com.example.ptweb.exception.InvalidTorrentVersionException;
 import com.example.ptweb.exception.TorrentException;
 import com.example.ptweb.other.ResponsePojo;
+import com.example.ptweb.other.TorrentConverter;
 import com.example.ptweb.service.*;
 import com.example.ptweb.util.IPUtil;
 import com.example.ptweb.util.TorrentParser;
@@ -33,6 +31,7 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.owasp.html.PolicyFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -51,6 +50,7 @@ import java.nio.file.Files;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.example.ptweb.exception.APIErrorCode.*;
 
@@ -83,10 +83,12 @@ public class TorrentController {
     private AuthenticationService authenticationService;
     @Autowired
     private PeerService peerService;
+    @Autowired
+    private TorrentConverter torrentConverter;
     //@Autowired
     //private ThanksService thanksService;
 
-    @PostMapping("/upload")
+    @PostMapping("/ upload")
     @SaCheckLogin
     @Transactional
     public ResponseEntity<ResponsePojo> upload(@Valid @ModelAttribute TorrentUploadForm form) throws IOException {
@@ -156,43 +158,59 @@ public class TorrentController {
         }
     }
 //
-//    @PostMapping("/search")
-//   // @SaCheckPermission("torrent:search")
-//    public TorrentSearchResultResponseDTO search(@RequestBody SearchTorrentRequestDTO searchRequestDTO) {
-//        searchRequestDTO.setEntriesPerPage(Math.min(searchRequestDTO.getEntriesPerPage(), 300));
-//        IPage<Torrent> torrents = torrentService.search(searchRequestDTO);
-//        return new TorrentSearchResultResponseDTO(torrents.getTotalElements(), torrents.getTotalPages(), torrents.getContent());
-//    }
-//
-//    @GetMapping("/view/{info_hash}")
+    @PostMapping("/search")
+   // @SaCheckPermission("torrent:search")
+    public TorrentSearchResultResponseDTO search(@RequestBody(required = false) @Nullable SearchTorrentRequestDTO searchRequestDTO) {
+        if (searchRequestDTO == null) {
+            searchRequestDTO = new SearchTorrentRequestDTO();
+        }
+        if(searchRequestDTO.getEntriesPerPage()==0){
+            searchRequestDTO.setEntriesPerPage(10);
+        }
+        log.info(searchRequestDTO.toString());
+        IPage<Torrent> page = torrentService.search(searchRequestDTO);
+
+        List<TorrentBasicResponseDTO> dtoList = page.getRecords().stream()
+                .map(torrentConverter::convert)
+                .toList();
+        long totalElements = page.getTotal();
+        long totalPages = (totalElements + searchRequestDTO.getEntriesPerPage() - 1) / searchRequestDTO.getEntriesPerPage();  // 向上取整
+
+
+        return new TorrentSearchResultResponseDTO(totalElements, totalPages, dtoList);
+    }
+
+    @GetMapping("/view/{info_hash}")
 //    @SaCheckPermission("torrent:view")
-//    public TorrentInfoResponseDTO view(@PathVariable("info_hash") String infoHash) {
-//        Torrent torrent = torrentService.getTorrent(infoHash);
-//        if (torrent == null) {
-//            throw new APIGenericException(TORRENT_NOT_EXISTS, "This torrent not registered on this tracker");
-//        }
-//        return new TorrentInfoResponseDTO(torrent);
-//    }
+    public TorrentInfoResponseDTO view(@PathVariable("info_hash") String infoHash) {
+        Torrent torrent = torrentService.getTorrentByInfoHash(infoHash);
+        if (torrent == null) {
+            throw new APIGenericException(TORRENT_NOT_EXISTS, "This torrent not registered on this tracker");
+        }
+        Map<Long, Tag> tagMap = tagService.getAllTags().stream()
+                .collect(Collectors.toMap(Tag::getId, tag -> tag));
+        return new TorrentInfoResponseDTO(torrent, tagMap);
+    }
 //
-//    @PostMapping("/scrape")
-//   // @SaCheckPermission("torrent:scrape")
-//    public TorrentScrapeResponseDTO scrape(@RequestBody TorrentScrapeRequestDTO scrapeRequestDTO) {
-//        if (scrapeRequestDTO.getTorrents() == null) {
-//            throw new APIGenericException(MISSING_PARAMETERS, "You must provide a list of info_hash");
-//        }
-//        Map<String, ScrapeContainerDTO> scrapes = new HashMap<>();
-//        Map<String, List<TransferHistoryDTO>> details = new HashMap<>();
-//        for (String infoHash : scrapeRequestDTO.getTorrents()) {
-//            Torrent torrent = torrentService.getTorrent(infoHash);
-//            if (torrent == null) {
-//                continue;
-//            }
-//            TransferHistoryService.PeerStatus peerStatus = transferHistoryService.getPeerStatus(torrent);
-//            scrapes.put(infoHash, new ScrapeContainerDTO(peerStatus.downloaded(), peerStatus.complete(), peerStatus.incomplete(), peerStatus.downloaders()));
-//            details.put(infoHash, transferHistoryService.getTransferHistory(torrent).stream().map(TransferHistoryDTO::new).toList());
-//        }
-//        return new TorrentScrapeResponseDTO(scrapes, details);
-//    }
+    @PostMapping("/scrape")
+   // @SaCheckPermission("torrent:scrape")
+    public TorrentScrapeResponseDTO scrape(@RequestBody TorrentScrapeRequestDTO scrapeRequestDTO) {
+        if (scrapeRequestDTO.getTorrents() == null) {
+            throw new APIGenericException(MISSING_PARAMETERS, "You must provide a list of info_hash");
+        }
+        Map<String, ScrapeContainerDTO> scrapes = new HashMap<>();
+        Map<String, List<TransferHistoryDTO>> details = new HashMap<>();
+        for (String infoHash : scrapeRequestDTO.getTorrents()) {
+            Torrent torrent = torrentService.getTorrentByInfoHash(infoHash);
+            if (torrent == null) {
+                continue;
+            }
+            TransferHistoryService.PeerStatus peerStatus = transferHistoryService.getPeerStatus(torrent);
+            scrapes.put(infoHash, new ScrapeContainerDTO(peerStatus.downloaded(), peerStatus.complete(), peerStatus.incomplete(), peerStatus.downloaders()));
+            details.put(infoHash, transferHistoryService.getTransferHistory(torrent).stream().map(TransferHistoryDTO::new).toList());
+        }
+        return new TorrentScrapeResponseDTO(scrapes, details);
+    }
 //
 //    @PutMapping("/thanks/{info_hash}")
 //    @SaCheckPermission("torrent:thanks")

@@ -23,7 +23,5 @@ public class SearchTorrentRequestDTO {
     private boolean includeDeadTorrent;
     @PositiveOrZero
     private int page;
-    @Min(1)
-    @Max(300)
     private int entriesPerPage;
 }
