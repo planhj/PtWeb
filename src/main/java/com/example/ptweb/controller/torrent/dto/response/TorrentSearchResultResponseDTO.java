@@ -14,12 +14,13 @@ import java.util.List;
 @Validated
 public class TorrentSearchResultResponseDTO extends ResponsePojo {
     private long totalElements;
-    private int totalPages;
+    private long totalPages;
     private List<TorrentBasicResponseDTO> torrents;
 
-    public TorrentSearchResultResponseDTO(long totalElements, int totalPages, List<Torrent> torrents) {
+    public TorrentSearchResultResponseDTO(long totalElements, long totalPages, List<TorrentBasicResponseDTO> torrents) {
         this.totalElements = totalElements;
         this.totalPages = totalPages;
-        this.torrents = torrents.stream().map(TorrentBasicResponseDTO::new).toList();
+        this.torrents = torrents;
     }
 }
+

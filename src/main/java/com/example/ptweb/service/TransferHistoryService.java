@@ -65,13 +65,13 @@ public class TransferHistoryService {
                 if (history.isHaveCompleteHistory()) {
                     downloaded++;
                 }
-                if (history.getLeft() == 0) {
+                if (history.getToGo() == 0) {
                     complete++;
                 } else {
                     incomplete++;
                 }
             } else {
-                if (history.getLeft() == 0) {
+                if (history.getToGo() == 0) {
                     complete++;
                 }
                 if (history.isHaveCompleteHistory()) {

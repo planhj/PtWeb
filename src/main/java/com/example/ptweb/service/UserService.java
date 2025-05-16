@@ -48,5 +48,12 @@ public class UserService {
         }
         return user;
     }
+
+    public void updateUser(@NotNull User user) {
+        if (user.getId() == 0) {
+            throw new IllegalArgumentException("User ID cannot be 0 for update operation.");
+        }
+        userMapper.updateById(user);
+    }
 }
 

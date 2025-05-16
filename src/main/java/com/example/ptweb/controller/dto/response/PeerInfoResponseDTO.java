@@ -1,7 +1,9 @@
 package com.example.ptweb.controller.dto.response;
 
 import com.example.ptweb.entity.Peer;
+import com.example.ptweb.entity.User;
 import com.example.ptweb.other.ResponsePojo;
+import com.example.ptweb.service.UserService;
 import com.example.ptweb.type.PrivacyLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -14,7 +16,7 @@ import java.sql.Timestamp;
 @Validated
 public class PeerInfoResponseDTO extends ResponsePojo {
     private long id;
-    private UserBasicResponseDTO user;
+    private UserBasicResponseDTO userDto;
     private String infoHash;
     private String peerId;
     private String userAgent;
@@ -27,20 +29,23 @@ public class PeerInfoResponseDTO extends ResponsePojo {
     private long seedingTime;
     private long uploadSpeed;
     private long downloadSpeed;
+    private UserService userService;
+    private User user;
 
     public PeerInfoResponseDTO(Peer peer) {
         this.id = peer.getId();
-        if (peer.getUser().getPrivacyLevel().ordinal() > PrivacyLevel.MEDIUM.ordinal()) {
-            this.user = null;
+        this.user = userService.getUser(peer.getUserId());
+        if (this.user.getPrivacyLevel().ordinal() > PrivacyLevel.MEDIUM.ordinal()) {
+            this.userDto = null;
         } else {
-            this.user = new UserBasicResponseDTO(peer.getUser());
+            this.userDto = new UserBasicResponseDTO(this.user);
         }
         this.infoHash = peer.getInfoHash();
         this.peerId = peer.getPeerId();
         this.userAgent = peer.getUserAgent();
         this.uploaded = peer.getUploaded();
         this.downloaded = peer.getDownloaded();
-        this.left = peer.getLeft();
+        this.left = peer.getToGo();
         this.seeder = peer.isSeeder();
         this.partialSeeder = peer.isPartialSeeder();
         this.updateAt = peer.getUpdateAt();
