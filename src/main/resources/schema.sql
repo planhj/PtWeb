@@ -1,3 +1,4 @@
+use pt;
 
 create table categories
 (
@@ -386,3 +387,19 @@ create table transfer_history
         foreign key (torrent_id) references torrents (id)
 );
 
+create table item_categories
+(
+    category_id   int auto_increment
+        primary key,
+    name          varchar(50)          not null,
+    description   text                 null,
+    display_order int        default 0 not null,
+    is_active     tinyint(1) default 1 not null,
+    price         long                 not null
+);
+
+create index idx_category_active
+    on item_categories (is_active);
+
+create index idx_category_order
+    on item_categories (display_order);
