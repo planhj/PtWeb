@@ -25,7 +25,7 @@ public class TransferHistory {
     private Long torrentId;
 
     @TableField("to_go")
-    private long left;
+    private long toGo;
 
     @TableField("started_at")
     private Timestamp startedAt;

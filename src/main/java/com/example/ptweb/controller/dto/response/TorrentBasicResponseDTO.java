@@ -23,30 +23,29 @@ public class TorrentBasicResponseDTO extends ResponsePojo {
     private final Timestamp createdAt;
     private final boolean underReview;
     private final boolean anonymous;
-    private final long categoryId;
-    private final long promotionPolicyId;
+    private final CategoryResponseDTO category;
+    private final PromotionPolicy promotionPolicy;
     private final List<String> tag;
 
-    public TorrentBasicResponseDTO(Torrent torrent){
+    public TorrentBasicResponseDTO(
+            Torrent torrent,
+            CategoryResponseDTO category,
+            PromotionPolicy promotionPolicy,
+            List<String> tagNames
+    ) {
         super(0);
         this.id = torrent.getId();
         this.infoHash = torrent.getInfoHash();
-        PromotionService promotionService = new PromotionService();
-        PromotionPolicy promotionPolicy1 = promotionService.getPromotionPolicy(torrent.getPromotionPolicyId());
-
-        if(torrent.isAnonymous()){
-            this.userId = 0L;
-        }else{
-            this.userId = torrent.getUserId();
-        }
+        this.userId = torrent.isAnonymous() ? 0L : torrent.getUserId();
         this.title = torrent.getTitle();
         this.subTitle = torrent.getSubTitle();
         this.size = torrent.getSize();
         this.createdAt = torrent.getCreatedAt();
         this.underReview = torrent.isUnderReview();
         this.anonymous = torrent.isAnonymous();
-        this.categoryId = torrent.getCategoryId();
-        this.promotionPolicyId = torrent.getPromotionPolicyId();
-        this.tag = null; //torrent.getTag().stream().map(Tag::getName).toList();
+        this.category = category;
+        this.promotionPolicy = promotionPolicy;
+        this.tag = tagNames;
     }
+
 }

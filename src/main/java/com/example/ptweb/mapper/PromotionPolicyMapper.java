@@ -8,6 +8,4 @@ import org.apache.ibatis.annotations.Select;
 @Mapper
 public interface PromotionPolicyMapper extends BaseMapper<PromotionPolicy> {
 
-    @Select("SELECT * FROM promotion_policies WHERE slug = #{slug} LIMIT 1")
-    PromotionPolicy findBySlug(String slug);
 }

@@ -29,27 +29,31 @@ public class SettingService {
         queryWrapper.eq("setting_key", configKey);
 
         SettingEntity configData = settingMapper.selectOne(queryWrapper);
+
+        // 统一：先尝试 resolve 默认配置
+        T entity = null;
         if (configData != null) {
-            String data = configData.getSettingValue();
             try {
-                return objectMapper.readValue(data, clazz);
+                entity = objectMapper.readValue(configData.getSettingValue(), clazz);
             } catch (JsonProcessingException e) {
-                log.error("Unable to deserialize setting object: {} -> {}", configKey, data, e);
+                log.error("反序列化配置失败: {} -> {}", configKey, configData.getSettingValue(), e);
                 throw new RuntimeException(e);
             }
         } else {
-            log.error("The configuration key {} doesn't exist in database!", configKey);
-            T entity = resolve(clazz);
+            log.warn("配置项 {} 不存在，尝试调用 spawnDefault 创建默认值。", configKey);
+            entity = resolve(clazz);
             if (entity == null) throw new BadConfigException();
-            try {
-                set(configKey, entity);
-                log.info("Resolved missing configuration key via #spawnDefault static method.");
-            } catch (JsonProcessingException e) {
-                log.error("Unable to serialize setting object: {} -> {}", configKey, entity, e);
-                throw new RuntimeException(e);
-            }
-            return entity;
         }
+
+        // 始终执行一次更新（用于修复默认值、新字段等）
+        try {
+            set(configKey, entity);
+        } catch (JsonProcessingException e) {
+            log.error("更新配置项失败: {} -> {}", configKey, entity, e);
+            throw new RuntimeException(e);
+        }
+
+        return entity;
     }
 
     @Nullable

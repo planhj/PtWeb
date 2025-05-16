@@ -69,4 +69,5 @@ public class User {
 
     @TableField("privacy_level")
     private PrivacyLevel privacyLevel;
+
 }

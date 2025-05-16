@@ -37,7 +37,7 @@ public class TrackerConfig {
                 List.of(),
                 false,
                 List.of(20, 21, 22, 23, 25, 80, 110, 119, 161, 162, 443, 445, 1433, 1521, 2049, 3306, 3389, 8080, 8081),
-                "Sapling"
+                "PtWeb"
         );
     }
 
