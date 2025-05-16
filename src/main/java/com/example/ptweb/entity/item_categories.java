@@ -9,11 +9,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @TableName(value = "item_categories")
-public class Item_Category {
+public class item_categories {
 
     @TableId(value = "category_id", type = IdType.AUTO)
     private long id;
@@ -29,5 +31,17 @@ public class Item_Category {
 
     @TableField("is_active")
     private boolean is_active;
+
+    @TableField("price")
+    private int price;
+
+    public Boolean getIsActive() {
+        return is_active;
+    }
+
+    public int getPrice(){
+        return price;
+    }
+
 
 }

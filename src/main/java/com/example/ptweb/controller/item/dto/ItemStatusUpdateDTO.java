@@ -1,9 +1,10 @@
-package com.example.ptweb.controller.item;
+package com.example.ptweb.controller.item.dto;
 
-import org.jetbrains.annotations.NotNull;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
 
 @Data
-static class ItemStatusUpdateDTO {
+public class ItemStatusUpdateDTO {
     @NotNull(message = "状态不能为空")
     private Boolean isActive;
 }

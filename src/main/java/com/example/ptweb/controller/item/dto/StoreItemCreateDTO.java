@@ -1,15 +1,15 @@
-package com.example.ptweb.controller.item;
+package com.example.ptweb.controller.item.dto;
 
-import org.jetbrains.annotations.NotNull;
-import com.example.ptweb.entity.item_categories.java;
-import com.example.ptweb.mapper.item_categoriesMapper.java;
-import com.example.ptweb.service.itemService.java;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
 
-
-//------------------------ 相关DTO定义 ------------------------
+import java.math.BigDecimal;
 
 @Data
-static class StoreItemCreateDTO {
+public class StoreItemCreateDTO {
+
     @NotBlank(message = "商品名称不能为空")
     private String name;
 
@@ -24,4 +24,5 @@ static class StoreItemCreateDTO {
     private String description;
     private Boolean isFeatured;
 }
+
 
