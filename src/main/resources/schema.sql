@@ -1,3 +1,4 @@
+
 create table categories
 (
     id   bigint auto_increment
