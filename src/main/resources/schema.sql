@@ -266,36 +266,35 @@ create table tags
         unique (name)
 );
 
-create table user
+CREATE TABLE user
 (
-    id                    bigint auto_increment
-        primary key,
-    avatar                varchar(255)   not null,
-    create_at             datetime(6)    not null,
-    custom_title          varchar(255)   not null,
-    download_bandwidth    varchar(255)   not null,
-    downloaded            bigint         not null,
-    email                 varchar(255)   not null,
-    invite_slot           int            not null,
-    passkey               varchar(255)   not null,
-    password              varchar(255)   not null,
-    personal_access_token varchar(255)   not null,
-    privacy_level         varchar(10)    not null,
-    real_downloaded       bigint         not null,
-    real_uploaded         bigint         not null,
-    score                 decimal(38, 2) not null,
-    seeding_time          bigint         not null,
-    signature             varchar(255)   not null,
-    upload_bandwidth      varchar(255)   not null,
-    uploaded              bigint         not null,
-    username              varchar(255)   not null,
-    constraint UK2v3v0uxl1rke2bks4g123axwq
-        unique (passkey),
-    constraint UKob8kqyqqgmefl0aco34akdtpe
-        unique (email),
-    constraint UKsb8bbouer5wak8vyiiy4pf2bx
-        unique (username)
+    id                    BIGINT AUTO_INCREMENT PRIMARY KEY,
+    avatar                VARCHAR(255)   NOT NULL,
+    create_at             DATETIME(6)    NOT NULL,
+    custom_title          VARCHAR(255)   NOT NULL,
+    download_bandwidth    VARCHAR(255)   NOT NULL,
+    downloaded            BIGINT         NOT NULL,
+    email                 VARCHAR(255)   NOT NULL,
+    invite_slot           INT            NOT NULL,
+    passkey               VARCHAR(255)   NOT NULL,
+    password              VARCHAR(255)   NOT NULL,
+    personal_access_token VARCHAR(255)   NOT NULL,
+    privacy_level         VARCHAR(10)    NOT NULL,
+    real_downloaded       BIGINT         NOT NULL,
+    real_uploaded         BIGINT         NOT NULL,
+    score                 DECIMAL(38, 2) NOT NULL,
+    seeding_time          BIGINT         NOT NULL,
+    signature             VARCHAR(255)   NOT NULL,
+    upload_bandwidth      VARCHAR(255)   NOT NULL,
+    uploaded              BIGINT         NOT NULL,
+    username              VARCHAR(255)   NOT NULL,
+    last_sign_in_date     DATE,
+    continuous_days       INT DEFAULT 0,
+    CONSTRAINT UK2v3v0uxl1rke2bks4g123axwq UNIQUE (passkey),
+    CONSTRAINT UKob8kqyqqgmefl0aco34akdtpe UNIQUE (email),
+    CONSTRAINT UKsb8bbouer5wak8vyiiy4pf2bx UNIQUE (username)
 );
+
 
 create table peers
 (

@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 
 public enum APIErrorCode {
+
     MISSING_PARAMETERS(1, HttpStatus.BAD_REQUEST),
     USER_NOT_FOUND(2, HttpStatus.NOT_FOUND),
     AUTHENTICATION_FAILED(3, HttpStatus.FORBIDDEN),
@@ -36,6 +37,7 @@ public enum APIErrorCode {
         return code;
     }
 
+    public static final int INVALID_PARAMETERS = 1004; // 自定义一个合适的错误码值
 
     public HttpStatusCode getStatusCode() {
         return statusCode;
