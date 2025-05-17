@@ -403,3 +403,47 @@ create index idx_category_active
 
 create index idx_category_order
     on item_categories (display_order);
+
+CREATE TABLE forum_sections (
+                                id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                name VARCHAR(100) NOT NULL,
+                                description TEXT,
+                                display_order INT DEFAULT 0
+);
+
+
+CREATE TABLE forum_posts (
+                             id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                             section_id BIGINT NOT NULL,
+                             user_id BIGINT NOT NULL,
+                             title VARCHAR(255) NOT NULL,
+                             content TEXT NOT NULL,
+                             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                             view_count INT DEFAULT 0,
+
+                             FOREIGN KEY (section_id) REFERENCES forum_sections(id),
+                             FOREIGN KEY (user_id) REFERENCES user(id)
+);
+
+
+CREATE TABLE forum_comments (
+                                id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                post_id BIGINT NOT NULL,
+                                user_id BIGINT NOT NULL,
+                                content TEXT NOT NULL,
+                                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+                                FOREIGN KEY (post_id) REFERENCES forum_posts(id),
+                                FOREIGN KEY (user_id) REFERENCES user(id)
+);
+
+
+CREATE TABLE forum_post_likes (
+                                  user_id BIGINT NOT NULL,
+                                  post_id BIGINT NOT NULL,
+                                  liked_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                  PRIMARY KEY (user_id, post_id),
+                                  FOREIGN KEY (user_id) REFERENCES user(id),
+                                  FOREIGN KEY (post_id) REFERENCES forum_posts(id)
+);
