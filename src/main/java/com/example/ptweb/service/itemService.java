@@ -23,12 +23,8 @@ public class itemService {
 
         item_categories item = getAvailableItem(itemId);
 
-        // 可按需启用库存检查
-        // checkItemStock(item, quantity);
-
         int totalCost = calculateTotalCost(item, quantity);
         deductUserPoints(userId, totalCost);
-        reduceItemStock(itemId, quantity);
         sendNotification(userId, item, quantity, totalCost);
 
         return buildPurchaseResult(userId, item, quantity, totalCost);
@@ -40,14 +36,6 @@ public class itemService {
         if (!Boolean.TRUE.equals(item.getIsActive())) throw new ItemNotAvailableException("商品已下架");
         return item;
     }
-
-    /*
-    private void checkItemStock(item_categories item, int quantity) {
-        if (item.getStock() != null && item.getStock() < quantity) {
-            throw new InsufficientStockException("商品库存不足，剩余" + item.getStock() + "件");
-        }
-    }
-    */
 
     private int calculateTotalCost(item_categories item, int quantity) {
         Integer price = item.getPrice();
@@ -68,16 +56,6 @@ public class itemService {
         }
     }
 
-    private void reduceItemStock(int itemId, int quantity) {
-        Integer stock = itemCategoriesMapper.checkItemStock(itemId);
-        if (stock != null) {
-            int affectedRows = itemCategoriesMapper.reduceItemStock(itemId, quantity);
-            if (affectedRows == 0) {
-                throw new ReduceStockFailedException("减少库存失败");
-            }
-        }
-    }
-
     private void sendNotification(int userId, item_categories item, int quantity, int totalCost) {
         System.out.printf("用户 %d 兑换了商品 %s ×%d，花费积分 %d%n",
                 userId, item.getName(), quantity, totalCost);
@@ -93,7 +71,19 @@ public class itemService {
         return result;
     }
 
-    // 简化版兑换结果DTO
+    public List<item_categories> getAllActiveItems() {
+        return itemCategoriesMapper.selectAllActive();
+    }
+
+    public item_categories getItemById(int itemId) {
+        item_categories item = itemCategoriesMapper.selectById(itemId);
+        if (item == null || !Boolean.TRUE.equals(item.getIsActive())) {
+            throw new ItemNotAvailableException("商品不存在或未上架");
+        }
+        return item;
+    }
+
+    // DTO
     public static class PurchaseResult {
         private int userId;
         private String itemName;
@@ -101,7 +91,6 @@ public class itemService {
         private BigDecimal cost;
         private BigDecimal remainingPoints;
 
-        // getter/setter
         public int getUserId() { return userId; }
         public void setUserId(int userId) { this.userId = userId; }
         public String getItemName() { return itemName; }
@@ -112,18 +101,6 @@ public class itemService {
         public void setCost(BigDecimal cost) { this.cost = cost; }
         public BigDecimal getRemainingPoints() { return remainingPoints; }
         public void setRemainingPoints(BigDecimal remainingPoints) { this.remainingPoints = remainingPoints; }
-    }
-    public List<item_categories> getAllActiveItems() {
-        return itemCategoriesMapper.selectAllActive(); // 自定义 mapper 方法
-    }
-
-    // 获取商品（用于详情或验证）
-    public item_categories getItemById(int itemId) {
-        item_categories item = itemCategoriesMapper.selectById(itemId);
-        if (item == null || !Boolean.TRUE.equals(item.getIsActive())) {
-            throw new ItemNotAvailableException("商品不存在或未上架");
-        }
-        return item;
     }
 
     // 异常类
@@ -139,19 +116,11 @@ public class itemService {
         public ItemNotAvailableException(String message) { super(message); }
     }
 
-    public static class InsufficientStockException extends BusinessException {
-        public InsufficientStockException(String message) { super(message); }
-    }
-
     public static class InsufficientPointsException extends BusinessException {
         public InsufficientPointsException(String message) { super(message); }
     }
 
     public static class DeductPointsFailedException extends BusinessException {
         public DeductPointsFailedException(String message) { super(message); }
-    }
-
-    public static class ReduceStockFailedException extends BusinessException {
-        public ReduceStockFailedException(String message) { super(message); }
     }
 }

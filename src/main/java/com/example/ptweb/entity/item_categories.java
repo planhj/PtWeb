@@ -18,7 +18,7 @@ import java.math.BigDecimal;
 public class item_categories {
 
     @TableId(value = "category_id", type = IdType.AUTO)
-    private long id;
+    private long categoryId;
 
     @TableField("name")
     private String name;
@@ -27,16 +27,16 @@ public class item_categories {
     private String description;
 
     @TableField("display_order")
-    private long order;
+    private long displayOrder;
 
     @TableField("is_active")
-    private boolean is_active;
+    private boolean isActive;
 
     @TableField("price")
     private int price;
 
     public Boolean getIsActive() {
-        return is_active;
+        return isActive;
     }
 
     public int getPrice(){

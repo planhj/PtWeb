@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/item")
+@RequestMapping("/v1/item")
 @RequiredArgsConstructor
 public class ItemController {
 
@@ -41,6 +41,12 @@ public class ItemController {
         } catch (BusinessException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
+    }
+
+    //测试类
+    @GetMapping("/ping")
+    public String ping() {
+        return "pong";
     }
 
     /**
