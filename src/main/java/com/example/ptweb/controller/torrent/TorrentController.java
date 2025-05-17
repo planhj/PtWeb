@@ -1,15 +1,13 @@
 package com.example.ptweb.controller.torrent;
 
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.exception.NotPermissionException;
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.example.ptweb.config.SiteBasicConfig;
 import com.example.ptweb.config.TrackerConfig;
-import com.example.ptweb.controller.dto.response.ScrapeContainerDTO;
-import com.example.ptweb.controller.dto.response.TorrentInfoResponseDTO;
-import com.example.ptweb.controller.dto.response.TransferHistoryDTO;
-import com.example.ptweb.controller.dto.response.UserTinyResponseDTO;
+import com.example.ptweb.controller.dto.response.*;
 import com.example.ptweb.controller.torrent.dto.request.SearchTorrentRequestDTO;
 import com.example.ptweb.controller.torrent.dto.request.ThanksResponseDTO;
 import com.example.ptweb.controller.torrent.dto.request.TorrentScrapeRequestDTO;
@@ -23,6 +21,7 @@ import com.example.ptweb.exception.EmptyTorrentFileException;
 import com.example.ptweb.exception.InvalidTorrentVersionException;
 import com.example.ptweb.exception.TorrentException;
 import com.example.ptweb.other.ResponsePojo;
+import com.example.ptweb.other.TorrentConverter;
 import com.example.ptweb.service.*;
 import com.example.ptweb.util.IPUtil;
 import com.example.ptweb.util.TorrentParser;
@@ -32,6 +31,7 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.owasp.html.PolicyFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -45,10 +45,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.example.ptweb.exception.APIErrorCode.*;
 
@@ -81,11 +83,13 @@ public class TorrentController {
     private AuthenticationService authenticationService;
     @Autowired
     private PeerService peerService;
+    @Autowired
+    private TorrentConverter torrentConverter;
     //@Autowired
     //private ThanksService thanksService;
 
-    @PostMapping("/upload")
-    //@SaCheckPermission("torrent:upload")
+    @PostMapping("/ upload")
+    @SaCheckLogin
     @Transactional
     public ResponseEntity<ResponsePojo> upload(@Valid @ModelAttribute TorrentUploadForm form) throws IOException {
         if (StringUtils.isEmpty(form.getTitle())) {
@@ -139,6 +143,9 @@ public class TorrentController {
             if (torrent != null) {
                 log.info("Saving torrent {} to {}", torrent.getId(), torrentsDirectory);
                 torrent = torrentService.save(torrent);
+                BigDecimal uploadReward = BigDecimal.valueOf(200);
+                user.setScore(user.getScore().add(uploadReward));
+                userService.save(user);
             }
             log.info(torrent.toString());
             return ResponseEntity.ok().body(new TorrentUploadSuccessResponseDTO(torrent.getId(), parser.getInfoHash(), form.getFile()));
@@ -151,43 +158,59 @@ public class TorrentController {
         }
     }
 //
-//    @PostMapping("/search")
-//   // @SaCheckPermission("torrent:search")
-//    public TorrentSearchResultResponseDTO search(@RequestBody SearchTorrentRequestDTO searchRequestDTO) {
-//        searchRequestDTO.setEntriesPerPage(Math.min(searchRequestDTO.getEntriesPerPage(), 300));
-//        IPage<Torrent> torrents = torrentService.search(searchRequestDTO);
-//        return new TorrentSearchResultResponseDTO(torrents.getTotalElements(), torrents.getTotalPages(), torrents.getContent());
-//    }
-//
-//    @GetMapping("/view/{info_hash}")
+    @PostMapping("/search")
+   // @SaCheckPermission("torrent:search")
+    public TorrentSearchResultResponseDTO search(@RequestBody(required = false) @Nullable SearchTorrentRequestDTO searchRequestDTO) {
+        if (searchRequestDTO == null) {
+            searchRequestDTO = new SearchTorrentRequestDTO();
+        }
+        if(searchRequestDTO.getEntriesPerPage()==0){
+            searchRequestDTO.setEntriesPerPage(10);
+        }
+        log.info(searchRequestDTO.toString());
+        IPage<Torrent> page = torrentService.search(searchRequestDTO);
+
+        List<TorrentBasicResponseDTO> dtoList = page.getRecords().stream()
+                .map(torrentConverter::convert)
+                .toList();
+        long totalElements = page.getTotal();
+        long totalPages = (totalElements + searchRequestDTO.getEntriesPerPage() - 1) / searchRequestDTO.getEntriesPerPage();  // 向上取整
+
+
+        return new TorrentSearchResultResponseDTO(totalElements, totalPages, dtoList);
+    }
+
+    @GetMapping("/view/{info_hash}")
 //    @SaCheckPermission("torrent:view")
-//    public TorrentInfoResponseDTO view(@PathVariable("info_hash") String infoHash) {
-//        Torrent torrent = torrentService.getTorrent(infoHash);
-//        if (torrent == null) {
-//            throw new APIGenericException(TORRENT_NOT_EXISTS, "This torrent not registered on this tracker");
-//        }
-//        return new TorrentInfoResponseDTO(torrent);
-//    }
+    public TorrentInfoResponseDTO view(@PathVariable("info_hash") String infoHash) {
+        Torrent torrent = torrentService.getTorrentByInfoHash(infoHash);
+        if (torrent == null) {
+            throw new APIGenericException(TORRENT_NOT_EXISTS, "This torrent not registered on this tracker");
+        }
+        Map<Long, Tag> tagMap = tagService.getAllTags().stream()
+                .collect(Collectors.toMap(Tag::getId, tag -> tag));
+        return new TorrentInfoResponseDTO(torrent, tagMap);
+    }
 //
-//    @PostMapping("/scrape")
-//   // @SaCheckPermission("torrent:scrape")
-//    public TorrentScrapeResponseDTO scrape(@RequestBody TorrentScrapeRequestDTO scrapeRequestDTO) {
-//        if (scrapeRequestDTO.getTorrents() == null) {
-//            throw new APIGenericException(MISSING_PARAMETERS, "You must provide a list of info_hash");
-//        }
-//        Map<String, ScrapeContainerDTO> scrapes = new HashMap<>();
-//        Map<String, List<TransferHistoryDTO>> details = new HashMap<>();
-//        for (String infoHash : scrapeRequestDTO.getTorrents()) {
-//            Torrent torrent = torrentService.getTorrent(infoHash);
-//            if (torrent == null) {
-//                continue;
-//            }
-//            TransferHistoryService.PeerStatus peerStatus = transferHistoryService.getPeerStatus(torrent);
-//            scrapes.put(infoHash, new ScrapeContainerDTO(peerStatus.downloaded(), peerStatus.complete(), peerStatus.incomplete(), peerStatus.downloaders()));
-//            details.put(infoHash, transferHistoryService.getTransferHistory(torrent).stream().map(TransferHistoryDTO::new).toList());
-//        }
-//        return new TorrentScrapeResponseDTO(scrapes, details);
-//    }
+    @PostMapping("/scrape")
+   // @SaCheckPermission("torrent:scrape")
+    public TorrentScrapeResponseDTO scrape(@RequestBody TorrentScrapeRequestDTO scrapeRequestDTO) {
+        if (scrapeRequestDTO.getTorrents() == null) {
+            throw new APIGenericException(MISSING_PARAMETERS, "You must provide a list of info_hash");
+        }
+        Map<String, ScrapeContainerDTO> scrapes = new HashMap<>();
+        Map<String, List<TransferHistoryDTO>> details = new HashMap<>();
+        for (String infoHash : scrapeRequestDTO.getTorrents()) {
+            Torrent torrent = torrentService.getTorrentByInfoHash(infoHash);
+            if (torrent == null) {
+                continue;
+            }
+            TransferHistoryService.PeerStatus peerStatus = transferHistoryService.getPeerStatus(torrent);
+            scrapes.put(infoHash, new ScrapeContainerDTO(peerStatus.downloaded(), peerStatus.complete(), peerStatus.incomplete(), peerStatus.downloaders()));
+            details.put(infoHash, transferHistoryService.getTransferHistory(torrent).stream().map(TransferHistoryDTO::new).toList());
+        }
+        return new TorrentScrapeResponseDTO(scrapes, details);
+    }
 //
 //    @PutMapping("/thanks/{info_hash}")
 //    @SaCheckPermission("torrent:thanks")
@@ -228,9 +251,13 @@ public class TorrentController {
         if (user == null) {
             throw new APIGenericException(AUTHENTICATION_FAILED, "Neither passkey or session provided.");
         }
-//        if (!StpUtil.hasPermission(user.getId(), "torrent:download")) {
-//            throw new NotPermissionException("torrent:download");
-//        }
+        long downloaded = user.getDownloaded();
+        long uploaded = user.getUploaded();
+        double ratio = (downloaded == 0) ? Double.POSITIVE_INFINITY : (double) uploaded / downloaded;
+
+        if (ratio < 1) {
+            throw new APIGenericException(RATIO_TOO_LOW, String.format("您的分享率为 %.2f，低于1，无法执行该操作。", ratio));
+        }
         TrackerConfig trackerConfig = settingService.get(TrackerConfig.getConfigKey(), TrackerConfig.class);
         if (StringUtils.isEmpty(infoHash)) {
             throw new APIGenericException(MISSING_PARAMETERS, "You must provide a info_hash.");
@@ -250,12 +277,11 @@ public class TorrentController {
             throw new APIGenericException(TORRENT_FILE_MISSING, "This torrent's file are missing on this tracker, please contact with system administrator.");
         }
         TorrentParser parser = new TorrentParser(Files.readAllBytes(torrentFile.toPath()), false);
-        User user1 = userService.getUser(torrent.getUserId());
-        parser.rewriteForUser(trackerConfig.getTrackerURL(), user1.getPasskey(), user);
-        log.info("passkey: {}", user1.getPasskey());
+        //User user1 = userService.getUser(torrent.getUserId());
+        parser.rewriteForUser(trackerConfig.getTrackerURL(), user.getPasskey(), user);
+        log.info("userPasskey{}", user.getPasskey());
         String fileName = "[" + trackerConfig.getTorrentPrefix() + "] " + torrent.getTitle() + ".torrent";
         HttpHeaders header = new HttpHeaders();
-        log.info(fileName);
         header.set(HttpHeaders.CONTENT_TYPE, "application/x-bittorrent");
         header.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + URLEncodeUtil.urlEncode(fileName, false));
         return new HttpEntity<>(parser.save(), header);

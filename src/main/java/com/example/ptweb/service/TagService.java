@@ -28,6 +28,16 @@ public class TagService {
         return tagMapper.selectById(id);
     }
 
+    @Nullable
+    public List<String> getTagNamesByIds(List<Long> tagIds) {
+        if (tagIds == null || tagIds.isEmpty()) {
+            return List.of();
+        }
+        return tagMapper.selectBatchIds(tagIds).stream()
+                .map(Tag::getName)
+                .toList();
+    }
+
     @NotNull
     public Tag save(@NotNull Tag tag) {
         if (tag.getId() == 0) {

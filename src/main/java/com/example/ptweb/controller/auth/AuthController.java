@@ -62,11 +62,7 @@ public class AuthController {
             authenticationService.checkAccountLoginAttempts(ip);
             throw new APIGenericException(AUTHENTICATION_FAILED);
         }
-        //
-        log.info(login.getPassword());
-        log.info(user.getUsername());
-        log.info(user.getPersonalAccessToken());
-        log.info(user.toString());
+
         if(!authenticationService.authenticate(user,login.getPassword(),ip)){
             log.info("IP {} tried to login to user {} with bad password.",ip, login.getUser());
             throw new APIGenericException(AUTHENTICATION_FAILED);

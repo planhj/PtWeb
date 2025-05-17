@@ -4,16 +4,15 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.ptweb.controller.torrent.dto.request.SearchTorrentRequestDTO;
-import com.example.ptweb.entity.Category;
-import com.example.ptweb.entity.PromotionPolicy;
-import com.example.ptweb.entity.Torrent;
-import com.example.ptweb.entity.TransferHistory;
+import com.example.ptweb.entity.*;
 import com.example.ptweb.mapper.TorrentMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,21 +25,25 @@ public class TorrentService {
 
     @Autowired
     private PromotionService promotionService;
+    @Autowired
+    private TagService tagService;
 
     public IPage<Torrent> search(SearchTorrentRequestDTO dto) {
-        int page = Math.max(dto.getPage(), 0) + 1;
-        int size = Math.min(Math.max(dto.getEntriesPerPage(), 1), 300);
-
+        int page = Math.max(dto.getPage(), 1) ;
+        int size = dto.getEntriesPerPage();
+        List<String> category = Optional.ofNullable(dto.getCategory()).orElse(Collections.emptyList());
+        List<String> promotion = Optional.ofNullable(dto.getPromotion()).orElse(Collections.emptyList());
+        List<String> tags = Optional.ofNullable(dto.getTag()).orElse(Collections.emptyList());
         return search(
                 dto.getKeyword(),
-                dto.getCategory(),
-                dto.getPromotion(),
-                dto.getTag(),
+                category,
+                promotion,
+                tags,
                 new Page<>(page, size)
         );
     }
 
-    public IPage<Torrent> search(String keyword, List<String> categorySlugs, List<String> promotionSlugs, List<String> tagIds, IPage<Torrent> page) {
+    public IPage<Torrent> search(String keyword, List<String> categorySlugs, List<String> promotionSlugs, List<String> tagNames, IPage<Torrent> page) {
         LambdaQueryWrapper<Torrent> wrapper = new LambdaQueryWrapper<>();
 
         if (keyword != null && !keyword.isEmpty()) {
@@ -75,9 +78,21 @@ public class TorrentService {
             }
         }
 
-        if (!tagIds.isEmpty()) {
-            for (String tagId : tagIds) {
-                wrapper.like(Torrent::getTag, tagId);  // 模糊匹配字符串中的 tagId
+        if (!tagNames.isEmpty()) {
+            List<Long> tagIds = tagNames.stream()
+                    .map(name -> {
+                        Tag tag = tagService.getTag(name);
+                        return tag == null ? null : tag.getId();
+                    })
+                    .filter(Objects::nonNull)
+                    .toList();
+
+            if (!tagIds.isEmpty()) {
+                wrapper.and(w -> {
+                    for (Long tagId : tagIds) {
+                        w.or().apply("JSON_CONTAINS(tag, JSON_ARRAY({0}))", tagId);
+                    }
+                });
             }
         }
 
