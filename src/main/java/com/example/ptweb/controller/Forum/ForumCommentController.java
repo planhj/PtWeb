@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/forum/comments")
+@RequestMapping("/forum/comments")
 @RequiredArgsConstructor
 public class ForumCommentController {
 
@@ -36,8 +36,12 @@ public class ForumCommentController {
         return commentService.getCommentsByPostId(postId);
     }
 
-    @PostMapping
-    public ForumComment createComment(@RequestBody ForumComment comment) {
+    @PostMapping("/post/{post_id}/{user_id}")
+    public ForumComment createComment(@PathVariable("post_id") Long postId,
+                                      @PathVariable("user_id") Long userId,
+                                       @RequestBody ForumComment comment) {
+        comment.setPostId(postId);
+        comment.setUserId(userId);
         return commentService.createComment(comment);
     }
 

@@ -408,7 +408,9 @@ CREATE TABLE forum_sections (
                                 id BIGINT PRIMARY KEY AUTO_INCREMENT,
                                 name VARCHAR(100) NOT NULL,
                                 description TEXT,
-                                display_order INT DEFAULT 0
+                                display_order INT DEFAULT 0,
+                                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 
@@ -421,6 +423,7 @@ CREATE TABLE forum_posts (
                              created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                              updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                              view_count INT DEFAULT 0,
+                             viwe       INT DEFAULT 0,
 
                              FOREIGN KEY (section_id) REFERENCES forum_sections(id),
                              FOREIGN KEY (user_id) REFERENCES user(id)
@@ -433,8 +436,23 @@ CREATE TABLE forum_comments (
                                 user_id BIGINT NOT NULL,
                                 content TEXT NOT NULL,
                                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                viwe       INT DEFAULT 0,
 
                                 FOREIGN KEY (post_id) REFERENCES forum_posts(id),
+                                FOREIGN KEY (user_id) REFERENCES user(id)
+);
+
+CREATE TABLE forum_Ccomments (
+                                id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                comment_id BIGINT NOT NULL,
+                                user_id BIGINT NOT NULL,
+                                content TEXT NOT NULL,
+                                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                viwe       INT DEFAULT 0,
+                                post_id BIGINT NOT NULL,
+
+                                FOREIGN KEY (post_id) REFERENCES  forum_posts(id),
+                                FOREIGN KEY (comment_id) REFERENCES forum_comments(id),
                                 FOREIGN KEY (user_id) REFERENCES user(id)
 );
 

@@ -6,14 +6,14 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("forum_comments")
-public class ForumComment {
+@TableName("forum_Ccomments")
+public class ForumCcomment {
 
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    @TableField("post_id")
-    private Long postId;
+    @TableField("comment_id")
+    private Long commentId;
 
     @TableField("user_id")
     private Long userId;

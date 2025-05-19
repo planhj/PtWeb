@@ -3,17 +3,19 @@ package com.example.ptweb.service;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.ptweb.entity.ForumSection;
 import com.example.ptweb.mapper.ForumSectionMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ForumSectionService extends ServiceImpl<ForumSectionMapper, ForumSection> {
     // 可以扩展板块的自定义业务逻辑
-    private final ForumSectionMapper forumSectionMapper = null;
+    private final ForumSectionMapper forumSectionMapper;
 
     public List<ForumSection> getAllSections() {
-        return forumSectionMapper.selectList(null);
+        return forumSectionMapper.selectAllCategories();
     }
 
     public ForumSection createCategory(ForumSection section) {

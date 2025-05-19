@@ -10,7 +10,7 @@ import java.util.List;
 
 @Mapper
 public interface ForumSectionMapper extends BaseMapper<ForumSection> {
-    @Select("SELECT * FROM forum_category")
+    @Select("SELECT * FROM forum_sections")
     List<ForumSection> selectAllCategories();
 
 }

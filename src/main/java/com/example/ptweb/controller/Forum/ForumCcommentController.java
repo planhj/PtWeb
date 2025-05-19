@@ -1,0 +1,60 @@
+package com.example.ptweb.controller.Forum;
+
+
+
+import com.example.ptweb.entity.ForumCcomment;
+import com.example.ptweb.entity.ForumComment;
+import com.example.ptweb.service.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.ptweb.entity.item_categories;
+import com.example.ptweb.service.itemService.PurchaseResult;
+import com.example.ptweb.service.itemService.BusinessException;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/forum/ccomments")
+@RequiredArgsConstructor
+public class ForumCcommentController {
+
+    private final ForumCcommentService ccommentService;
+
+    @GetMapping("/{post_id}/{comment_id}")
+    public List<ForumCcomment> getCcommentsByComment(
+            @PathVariable("post_id") Long postId,
+            @PathVariable("comment_id") Long commentId) {
+
+        // 你可以根据需要用postId，或者仅仅传给service commentId
+        // 这里示例只用commentId查询
+        return ccommentService.getCcommentsByCommentId(commentId);
+    }
+
+    @PostMapping("/{post_id}/{comment_id}/{user_id}")
+    public ForumCcomment createComment(@PathVariable("post_id") Long postId,
+                                       @PathVariable("comment_id") Long comentId,
+                                       @PathVariable("user_id") Long userId,
+                                       @RequestBody ForumCcomment ccomment) {
+        ccomment.setCommentId(comentId);
+        ccomment.setUserId(userId);
+        return ccommentService.createCcomment(ccomment);
+    }
+
+    @PutMapping("/{id}")
+    public ForumCcomment updateComment(@PathVariable Long id, @RequestBody ForumCcomment ccomment) {
+        return ccommentService.updateCcomment(id, ccomment);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteCcomment(@PathVariable Long id) {
+        ccommentService.deleteCcomment(id);
+    }
+}
