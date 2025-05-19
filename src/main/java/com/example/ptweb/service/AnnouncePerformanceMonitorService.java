@@ -2,11 +2,13 @@ package com.example.ptweb.service;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.UUID;
 
+@Getter
 @Component
 
 public class AnnouncePerformanceMonitorService {
@@ -46,19 +48,4 @@ public class AnnouncePerformanceMonitorService {
         return avgNs() / 1000000;
     }
 
-    public long getHandled() {
-        return handled;
-    }
-
-    public Cache<UUID, Long> getAnnounceTimes() {
-        return announceTimes;
-    }
-
-    public Cache<UUID, Long> getAnnounceJobTimes() {
-        return announceJobTimes;
-    }
-
-    public Instant getStartTime() {
-        return startTime;
-    }
 }

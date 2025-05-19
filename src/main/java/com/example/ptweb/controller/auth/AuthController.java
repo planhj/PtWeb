@@ -47,6 +47,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public UserSessionResponseDTO login(@RequestBody LoginRequestDTO login) {
+        log.info("{}",login);
         String ip = IPUtil.getRequestIp(request);
         if (StringUtils.isEmpty(login.getUser())) {
             throw new APIGenericException(MISSING_PARAMETERS, "User parameter is required");

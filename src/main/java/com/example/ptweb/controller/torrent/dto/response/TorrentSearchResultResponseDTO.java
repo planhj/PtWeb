@@ -1,7 +1,6 @@
 package com.example.ptweb.controller.torrent.dto.response;
 
 import com.example.ptweb.controller.dto.response.TorrentBasicResponseDTO;
-import com.example.ptweb.entity.Torrent;
 import com.example.ptweb.other.ResponsePojo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

@@ -1,8 +1,7 @@
 package com.example.ptweb.config;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
-import org.apache.ibatis.session.SqlSessionFactory;
+import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

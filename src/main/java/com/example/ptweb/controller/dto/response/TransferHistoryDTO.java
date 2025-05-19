@@ -1,11 +1,6 @@
 package com.example.ptweb.controller.dto.response;
 
-import com.example.ptweb.entity.Torrent;
 import com.example.ptweb.entity.TransferHistory;
-import com.example.ptweb.entity.User;
-import com.example.ptweb.service.TorrentService;
-import com.example.ptweb.service.UserService;
-import com.example.ptweb.type.PrivacyLevel;
 import lombok.Data;
 import org.springframework.validation.annotation.Validated;
 
@@ -29,11 +24,7 @@ public class TransferHistoryDTO {
 
     public TransferHistoryDTO(TransferHistory transferHistory) {
         this.id = transferHistory.getId();
-        UserService userService = new UserService();
-        User user1 = userService.getUser(transferHistory.getUserId());
-        if (user1 != null && user1.getPrivacyLevel().ordinal() > PrivacyLevel.MEDIUM.ordinal()) {
-            this.user = null;
-        }
+        this.user = null;
         this.torrentId=transferHistory.getTorrentId();
         this.left = transferHistory.getToGo();
         this.startedAt = transferHistory.getStartedAt();

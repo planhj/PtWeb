@@ -4,16 +4,15 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.ptweb.controller.torrent.dto.request.SearchTorrentRequestDTO;
-import com.example.ptweb.entity.*;
+import com.example.ptweb.entity.Category;
+import com.example.ptweb.entity.PromotionPolicy;
+import com.example.ptweb.entity.Tag;
+import com.example.ptweb.entity.Torrent;
 import com.example.ptweb.mapper.TorrentMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Service
 public class TorrentService {
@@ -112,7 +111,9 @@ public class TorrentService {
     public Torrent getTorrentById(Long id) {
         return torrentMapper.selectById(id);
     }
-
+    public List<Torrent> getByIds(Set<Long> ids) {
+        return torrentMapper.selectBatchIds(ids);
+    }
     public Torrent getTorrentByInfoHash(String infoHash) {
         return torrentMapper.selectOne(new LambdaQueryWrapper<Torrent>()
                 .eq(Torrent::getInfoHash, infoHash.toLowerCase()));
@@ -123,5 +124,17 @@ public class TorrentService {
                 .eq(Torrent::getUserId, userId)
                 .orderByDesc(Torrent::getId));
     }
+
+    public List<Torrent> getAllTorrents() {
+        return torrentMapper.selectList(null);
+    }
+
+
+    public void saveAll(List<Torrent> torrents) {
+        for (Torrent torrent : torrents) {
+            save(torrent);
+        }
+    }
+
 
 }

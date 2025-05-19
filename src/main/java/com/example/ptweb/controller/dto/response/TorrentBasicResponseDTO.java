@@ -1,10 +1,9 @@
 package com.example.ptweb.controller.dto.response;
 
-import com.example.ptweb.entity.*;
+import com.example.ptweb.entity.Category;
+import com.example.ptweb.entity.PromotionPolicy;
+import com.example.ptweb.entity.Torrent;
 import com.example.ptweb.other.ResponsePojo;
-import com.example.ptweb.service.CategoryService;
-import com.example.ptweb.service.PromotionService;
-import com.example.ptweb.service.UserService;
 import lombok.Getter;
 import org.springframework.validation.annotation.Validated;
 
@@ -23,13 +22,16 @@ public class TorrentBasicResponseDTO extends ResponsePojo {
     private final Timestamp createdAt;
     private final boolean underReview;
     private final boolean anonymous;
-    private final CategoryResponseDTO category;
+    private final Category category;
     private final PromotionPolicy promotionPolicy;
     private final List<String> tag;
+    private final long seederCount;
+    private final long leecherCount;
+    private final long completedCount;
 
     public TorrentBasicResponseDTO(
             Torrent torrent,
-            CategoryResponseDTO category,
+            Category category,
             PromotionPolicy promotionPolicy,
             List<String> tagNames
     ) {
@@ -46,6 +48,9 @@ public class TorrentBasicResponseDTO extends ResponsePojo {
         this.category = category;
         this.promotionPolicy = promotionPolicy;
         this.tag = tagNames;
+        this.seederCount = torrent.getSeederCount();
+        this.leecherCount = torrent.getLeecherCount();
+        this.completedCount =torrent.getCompletedCount();
     }
 
 }

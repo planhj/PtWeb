@@ -1,8 +1,8 @@
 package com.example.ptweb.service;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.ptweb.entity.PromotionPolicy;
 import com.example.ptweb.mapper.PromotionPolicyMapper;
-import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +29,7 @@ public class PromotionService {
     @Nullable
     public PromotionPolicy getDefaultPromotionPolicy() {
         List<PromotionPolicy> all = mapper.selectList(null);
-        return all.isEmpty() ? null : all.get(0);
+        return all.isEmpty() ? null : all.get(2);
     }
 
     @NotNull

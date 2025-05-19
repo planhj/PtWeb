@@ -1,12 +1,16 @@
 package com.example.ptweb.entity;
 
 
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.ptweb.type.AnnounceEventType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 @Data
@@ -56,5 +60,7 @@ public class TransferHistory {
 
     @TableField("have_complete_history")
     private boolean haveCompleteHistory;
+
+    private BigDecimal bonusGiven;
 
 }

@@ -20,8 +20,8 @@ public interface PeerMapper extends BaseMapper<Peer> {
                                    @Param("port") int port,
                                    @Param("infoHash") String infoHash);
 
-    @Select("SELECT * FROM peers WHERE peer_id = #{peerId} AND LOWER(info_hash) = LOWER(#{infoHash}) LIMIT 1")
-    Peer selectByPeerIdAndInfoHash(@Param("peerId") String peerId,
+    @Select("SELECT * FROM peers WHERE user_id = #{userId} AND LOWER(info_hash) = LOWER(#{infoHash}) LIMIT 1")
+    Peer selectByUserIdAndInfoHash(@Param("userId") Long userId,
                                    @Param("infoHash") String infoHash);
 
     @Select("SELECT * FROM peers WHERE LOWER(info_hash) = LOWER(#{infoHash}) ORDER BY update_at DESC LIMIT #{limit}")

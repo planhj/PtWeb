@@ -1,17 +1,16 @@
 package com.example.ptweb.controller.dto.response;
 
-import com.example.ptweb.entity.*;
+import com.example.ptweb.entity.Category;
+import com.example.ptweb.entity.PromotionPolicy;
+import com.example.ptweb.entity.Torrent;
+import com.example.ptweb.entity.User;
 import com.example.ptweb.other.ResponsePojo;
-import com.example.ptweb.service.CategoryService;
-import com.example.ptweb.service.UserService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.validation.annotation.Validated;
 
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -28,12 +27,12 @@ public class TorrentInfoResponseDTO extends ResponsePojo {
     private Timestamp updatedAt;
     private boolean underReview;
     private CategoryResponseDTO category;
-    private Object promotionPolicy; // 你可以保留原 PromotionPolicy 或换成 DTO
+    private PromotionPolicy promotionPolicy;
     private String description;
-    private List<String> tag; // 这里改为 tag 名称列表
+    private final List<String> tag;;
 
 
-    public TorrentInfoResponseDTO(Torrent torrent, Map<Long, Tag> tagMap) {
+    public TorrentInfoResponseDTO(Torrent torrent, User user, Category category, PromotionPolicy promotionPolicy, List<String> tagList) {
         super(0);
         this.id = torrent.getId();
         this.infoHash = torrent.getInfoHash();
@@ -49,25 +48,17 @@ public class TorrentInfoResponseDTO extends ResponsePojo {
         if (torrent.isAnonymous()) {
             this.user = null;
         } else {
-            UserService userService = new UserService();
-            User user = userService.getUser(torrent.getUserId());
             if (user != null) {
                 this.user = new UserResponseDTO(user);
             }
         }
-        CategoryService categoryService = new CategoryService();
-        Category category = categoryService.getCategory(torrent.getCategoryId());
         if (category != null) {
             this.category = new CategoryResponseDTO(category);
         }
-        this.promotionPolicy = torrent.getPromotionPolicyId();
+        if(promotionPolicy != null) {
+            this.promotionPolicy=promotionPolicy;
+        }
 
-        // 转换 tag ID 列表为名称列表
-        this.tag = torrent.getTag() == null ? List.of() :
-                torrent.getTag().stream()
-                        .map(tagMap::get)
-                        .filter(tag -> tag != null)
-                        .map(Tag::getName)
-                        .collect(Collectors.toList());
+        this.tag = tagList;
     }
 }

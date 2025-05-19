@@ -1,6 +1,7 @@
 package com.example.ptweb.autoconfig;
 
 import com.example.ptweb.other.PeersCleanup;
+import com.example.ptweb.other.TorrentPromotionAdjustJob;
 import org.jetbrains.annotations.NotNull;
 import org.quartz.*;
 import org.quartz.spi.JobFactory;
@@ -33,6 +34,24 @@ public class QuartzConfig {
                 .startNow()
                 .build();
     }
+    @Bean
+    public JobDetail torrentPolicyAdjustJobDetail() {
+        return JobBuilder.newJob(TorrentPromotionAdjustJob.class)
+                .withIdentity("torrent_policy_adjust")
+                .withDescription("Adjust Promotion Policy")
+                .storeDurably()
+                .build();
+    }
+
+    @Bean
+    public Trigger torrentPolicyAdjustTrigger() {
+        return TriggerBuilder.newTrigger()
+                .forJob(torrentPolicyAdjustJobDetail())
+                .withSchedule(SimpleScheduleBuilder.repeatHourlyForever(1)) // 每小时运行一次
+                .startNow()
+                .build();
+    }
+
 
     @Bean
     public JobFactory jobFactory(ApplicationContext applicationContext) {

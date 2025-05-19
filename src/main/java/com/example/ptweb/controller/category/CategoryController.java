@@ -1,7 +1,6 @@
 package com.example.ptweb.controller.category;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
-import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.example.ptweb.controller.dto.response.CategoryResponseDTO;
 import com.example.ptweb.service.CategoryService;
 import lombok.extern.slf4j.Slf4j;

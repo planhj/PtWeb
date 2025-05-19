@@ -11,7 +11,7 @@ spring:
   datasource:
     url: jdbc:mysql://127.0.0.1:3306/pt?useSSL=false&serverTimezone=UTC
     username: root
-    password: 137l1632q4512X
+    password: gjw123456
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   data:
@@ -78,3 +78,6 @@ sa-token:
   is-concurrent: true
   is-share: false
   token-style: random-128
+  is-read-body: false
+  is-read-header: true
+  is-read-cookie: true

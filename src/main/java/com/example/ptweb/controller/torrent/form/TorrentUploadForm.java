@@ -5,8 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -23,7 +21,6 @@ public class TorrentUploadForm {
     @NotEmpty
     private String category;
     private List<String> tag;
-    private boolean anonymous;
     @NotNull
     private MultipartFile file;
 }

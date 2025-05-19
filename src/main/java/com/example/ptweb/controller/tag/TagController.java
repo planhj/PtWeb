@@ -1,6 +1,6 @@
 package com.example.ptweb.controller.tag;
+
 import cn.dev33.satoken.annotation.SaCheckLogin;
-import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.example.ptweb.controller.dto.response.TagResponseDTO;
 import com.example.ptweb.service.TagService;
 import lombok.extern.slf4j.Slf4j;

@@ -1,5 +1,5 @@
 package com.example.ptweb.controller.dto.response;
-import com.example.ptweb.entity.Category;
+
 import com.example.ptweb.entity.Tag;
 import com.example.ptweb.other.ResponsePojo;
 import lombok.Data;

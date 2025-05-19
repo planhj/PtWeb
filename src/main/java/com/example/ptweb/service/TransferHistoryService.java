@@ -17,6 +17,8 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+import static com.baomidou.mybatisplus.core.toolkit.Wrappers.lambdaQuery;
+
 @Service
 public class TransferHistoryService {
 
@@ -94,6 +96,13 @@ public class TransferHistoryService {
             mapper.updateById(transferHistory);
         }
         return transferHistory;
+    }
+
+    public List<TransferHistory> getByUserId(Long userId) {
+        return mapper.selectList(
+                new QueryWrapper<TransferHistory>().lambda()
+                        .eq(TransferHistory::getUserId, userId)
+        );
     }
 
     public record PeerStatus(int complete, int incomplete, int downloaded, int downloaders) {}

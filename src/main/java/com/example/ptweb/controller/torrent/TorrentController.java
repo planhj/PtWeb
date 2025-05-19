@@ -1,7 +1,6 @@
 package com.example.ptweb.controller.torrent;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
-import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.exception.NotPermissionException;
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -9,7 +8,6 @@ import com.example.ptweb.config.SiteBasicConfig;
 import com.example.ptweb.config.TrackerConfig;
 import com.example.ptweb.controller.dto.response.*;
 import com.example.ptweb.controller.torrent.dto.request.SearchTorrentRequestDTO;
-import com.example.ptweb.controller.torrent.dto.request.ThanksResponseDTO;
 import com.example.ptweb.controller.torrent.dto.request.TorrentScrapeRequestDTO;
 import com.example.ptweb.controller.torrent.dto.response.TorrentScrapeResponseDTO;
 import com.example.ptweb.controller.torrent.dto.response.TorrentSearchResultResponseDTO;
@@ -21,7 +19,6 @@ import com.example.ptweb.exception.EmptyTorrentFileException;
 import com.example.ptweb.exception.InvalidTorrentVersionException;
 import com.example.ptweb.exception.TorrentException;
 import com.example.ptweb.other.ResponsePojo;
-import com.example.ptweb.other.TorrentConverter;
 import com.example.ptweb.service.*;
 import com.example.ptweb.util.IPUtil;
 import com.example.ptweb.util.TorrentParser;
@@ -35,16 +32,15 @@ import org.jetbrains.annotations.Nullable;
 import org.owasp.html.PolicyFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.sql.Timestamp;
@@ -81,17 +77,14 @@ public class TorrentController {
     private TagService tagService;
     @Autowired
     private AuthenticationService authenticationService;
-    @Autowired
-    private PeerService peerService;
-    @Autowired
-    private TorrentConverter torrentConverter;
     //@Autowired
     //private ThanksService thanksService;
 
-    @PostMapping("/ upload")
+    @PostMapping("/upload")
     @SaCheckLogin
     @Transactional
     public ResponseEntity<ResponsePojo> upload(@Valid @ModelAttribute TorrentUploadForm form) throws IOException {
+        log.info("Upload torrent {}", form);
         if (StringUtils.isEmpty(form.getTitle())) {
             throw new APIGenericException(MISSING_PARAMETERS, "You must provide a title.");
         }
@@ -114,11 +107,6 @@ public class TorrentController {
         }
         String publisher = user.getUsername();
         String publisherUrl = siteBasicConfig.getSiteBaseURL() + "/user/" + user.getId();
-        if (form.isAnonymous()) {
-            StpUtil.checkPermission("torrent:publish_anonymous");
-            publisher = "Anonymous";
-            publisherUrl = siteBasicConfig.getSiteBaseURL();
-        }
         List<Tag> tags = new ArrayList<>();
         for (String tag : form.getTag()) {
             Tag t = tagService.getTag(tag);
@@ -137,8 +125,8 @@ public class TorrentController {
                 torrent = new Torrent(null, infoHash, user.getId(), form.getTitle(),
                         form.getSubtitle(), parser.getTorrentFilesSize(),
                         Timestamp.from(Instant.now()), Timestamp.from(Instant.now()),
-                        StpUtil.hasPermission("torrent:bypass_review"), form.isAnonymous(), category.getId(),
-                        promotionPolicy.getId(), form.getDescription(), tags.stream().map(Tag::getId).toList());
+                        StpUtil.hasPermission("torrent:bypass_review"),false, category.getId(),
+                        promotionPolicy.getId(), form.getDescription(), tags.stream().map(Tag::getId).toList(),0,0,0);
             }
             if (torrent != null) {
                 log.info("Saving torrent {} to {}", torrent.getId(), torrentsDirectory);
@@ -157,9 +145,8 @@ public class TorrentController {
             throw new APIGenericException(INVALID_TORRENT_FILE, e.getClass().getSimpleName() + ":" + e.getMessage());
         }
     }
-//
+
     @PostMapping("/search")
-   // @SaCheckPermission("torrent:search")
     public TorrentSearchResultResponseDTO search(@RequestBody(required = false) @Nullable SearchTorrentRequestDTO searchRequestDTO) {
         if (searchRequestDTO == null) {
             searchRequestDTO = new SearchTorrentRequestDTO();
@@ -171,8 +158,17 @@ public class TorrentController {
         IPage<Torrent> page = torrentService.search(searchRequestDTO);
 
         List<TorrentBasicResponseDTO> dtoList = page.getRecords().stream()
-                .map(torrentConverter::convert)
+                .map(torrent -> {
+                    Category category = categoryService.getCategory(torrent.getCategoryId());
+
+                    PromotionPolicy promotionPolicy = promotionService.getPromotionPolicy(torrent.getPromotionPolicyId());
+
+                    List<String> tagNames = tagService.getTagNamesByIds(torrent.getTag());
+
+                    return new TorrentBasicResponseDTO(torrent, category, promotionPolicy, tagNames);
+                })
                 .toList();
+
         long totalElements = page.getTotal();
         long totalPages = (totalElements + searchRequestDTO.getEntriesPerPage() - 1) / searchRequestDTO.getEntriesPerPage();  // 向上取整
 
@@ -181,19 +177,19 @@ public class TorrentController {
     }
 
     @GetMapping("/view/{info_hash}")
-//    @SaCheckPermission("torrent:view")
     public TorrentInfoResponseDTO view(@PathVariable("info_hash") String infoHash) {
         Torrent torrent = torrentService.getTorrentByInfoHash(infoHash);
         if (torrent == null) {
             throw new APIGenericException(TORRENT_NOT_EXISTS, "This torrent not registered on this tracker");
         }
-        Map<Long, Tag> tagMap = tagService.getAllTags().stream()
-                .collect(Collectors.toMap(Tag::getId, tag -> tag));
-        return new TorrentInfoResponseDTO(torrent, tagMap);
+        List<String> tagList = tagService.getTagNamesByIds(torrent.getTag());
+        User user = userService.getUser(torrent.getUserId());
+        Category category = categoryService.getCategory(torrent.getCategoryId());
+        PromotionPolicy promotionPolicy = promotionService.getPromotionPolicy(torrent.getPromotionPolicyId());
+        return new TorrentInfoResponseDTO(torrent, user, category, promotionPolicy, tagList);
     }
-//
+
     @PostMapping("/scrape")
-   // @SaCheckPermission("torrent:scrape")
     public TorrentScrapeResponseDTO scrape(@RequestBody TorrentScrapeRequestDTO scrapeRequestDTO) {
         if (scrapeRequestDTO.getTorrents() == null) {
             throw new APIGenericException(MISSING_PARAMETERS, "You must provide a list of info_hash");
@@ -211,35 +207,7 @@ public class TorrentController {
         }
         return new TorrentScrapeResponseDTO(scrapes, details);
     }
-//
-//    @PutMapping("/thanks/{info_hash}")
-//    @SaCheckPermission("torrent:thanks")
-//    @Transactional
-//    public HttpEntity<?> sayThanks(@PathVariable("info_hash") String infoHash) {
-//        User user = userService.getUser(StpUtil.getLoginIdAsLong());
-//        Torrent torrent = torrentService.getTorrent(infoHash);
-//        if (torrent == null) {
-//            throw new APIGenericException(TORRENT_NOT_EXISTS, "This torrent not registered on this tracker");
-//        }
-//        if (thanksService.sayThanks(torrent, user)) {
-//            return ResponseEntity.ok().build();
-//        } else {
-//            throw new APIGenericException(YOU_ALREADY_THANKED_THIS_TORRENT, "You have already expressed your thanks for the current Torrent");
-//        }
-//    }
-//
-//    @GetMapping("/thanks/{info_hash}")
-//    @SaCheckPermission("torrent:view")
-//    public ThanksResponseDTO queryThanks(@PathVariable("info_hash") String infoHash) {
-//        Torrent torrent = torrentService.getTorrent(infoHash);
-//        if (torrent == null) {
-//            throw new APIGenericException(TORRENT_NOT_EXISTS, "This torrent not registered on this tracker");
-//        }
-//        List<Thanks> thanks = thanksService.getLast25ThanksByTorrent(torrent);
-//        long thanksAmount = thanksService.countThanksForTorrent(torrent);
-//        return new ThanksResponseDTO(thanksAmount, thanks.stream().map(t -> new UserTinyResponseDTO(t.getUser())).toList());
-//    }
-//
+
     @GetMapping("/download/{info_hash}")
     public HttpEntity<?> download(@PathVariable("info_hash") String infoHash, @RequestParam @NotNull Map<String, String> params) throws IOException, TorrentException {
         User user;
@@ -251,13 +219,13 @@ public class TorrentController {
         if (user == null) {
             throw new APIGenericException(AUTHENTICATION_FAILED, "Neither passkey or session provided.");
         }
-        long downloaded = user.getDownloaded();
-        long uploaded = user.getUploaded();
-        double ratio = (downloaded == 0) ? Double.POSITIVE_INFINITY : (double) uploaded / downloaded;
-
-        if (ratio < 1) {
-            throw new APIGenericException(RATIO_TOO_LOW, String.format("您的分享率为 %.2f，低于1，无法执行该操作。", ratio));
-        }
+//        long downloaded = user.getDownloaded();
+//        long uploaded = user.getUploaded();
+//        double ratio = (downloaded == 0) ? Double.POSITIVE_INFINITY : (double) uploaded / downloaded;
+//
+//        if (ratio < 1) {
+//            throw new APIGenericException(RATIO_TOO_LOW, String.format("您的分享率为 %.2f，低于1，无法执行该操作。", ratio));
+//        }
         TrackerConfig trackerConfig = settingService.get(TrackerConfig.getConfigKey(), TrackerConfig.class);
         if (StringUtils.isEmpty(infoHash)) {
             throw new APIGenericException(MISSING_PARAMETERS, "You must provide a info_hash.");
@@ -286,4 +254,36 @@ public class TorrentController {
         header.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + URLEncodeUtil.urlEncode(fileName, false));
         return new HttpEntity<>(parser.save(), header);
     }
+
+    @GetMapping("/dead-seeds")
+    public DeadSeedResponseDTO getDeadSeedTorrents() {
+        Long userId = StpUtil.getLoginIdAsLong();
+        List<TransferHistory> userHistories = transferHistoryService.getByUserId(userId);
+        if (userHistories.isEmpty()) {
+            return new DeadSeedResponseDTO("当前没有资源可保种。", List.of());
+        }
+
+        Set<Long> torrentIds = userHistories.stream()
+                .map(TransferHistory::getTorrentId)
+                .collect(Collectors.toSet());
+
+        List<TorrentBasicResponseDTO> deadSeedDTOs = torrentService.getByIds(torrentIds).stream()
+                .filter(t -> t.getSeederCount() <4)
+                .map(torrent -> {
+                    Category category = categoryService.getCategory(torrent.getCategoryId());
+                    PromotionPolicy promotionPolicy = promotionService.getPromotionPolicy(torrent.getPromotionPolicyId());
+                    List<String> tagNames = tagService.getTagNamesByIds(torrent.getTag());
+
+                    return new TorrentBasicResponseDTO(torrent, category, promotionPolicy, tagNames);
+                })
+                .toList();
+
+        if (deadSeedDTOs.isEmpty()) {
+            return new DeadSeedResponseDTO("当前没有资源可保种。", List.of());
+        }
+
+        return new DeadSeedResponseDTO("该种子做种人数少，并且您曾拥有资源。做种时做种积分X5直到做种人数>3", deadSeedDTOs);
+    }
+
+
 }

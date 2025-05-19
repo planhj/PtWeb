@@ -1,12 +1,14 @@
 package com.example.ptweb.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.ptweb.entity.Peer;
+import com.example.ptweb.mapper.PeerMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.example.ptweb.mapper.PeerMapper;
+
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -21,9 +23,9 @@ public class PeerService {
     private PeerMapper peerMapper;
 
     @Nullable
-    public Peer getPeer(@NotNull String ip, int port, @NotNull String infoHash) {
+    public Peer getPeer(@NotNull Long userId, @NotNull String infoHash) {
         infoHash = infoHash.toLowerCase(Locale.ROOT);
-        return peerMapper.selectByIpPortAndInfoHash(ip, port, infoHash);
+        return peerMapper.selectByUserIdAndInfoHash(userId, infoHash);
     }
 
     @NotNull
@@ -59,6 +61,11 @@ public class PeerService {
 
     public void deleteByInfoHashAndPeerId(@NotNull String infoHash, @NotNull String peerId) {
         peerMapper.deleteByInfoHashAndPeerId(infoHash.toLowerCase(Locale.ROOT), peerId);
+    }
+    List<Peer> getAllPeersByTorrent(String infoHash) {
+        return peerMapper.selectList(
+                new LambdaQueryWrapper<Peer>().eq(Peer::getInfoHash, infoHash)
+        );
     }
 }
 

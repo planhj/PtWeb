@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import com.example.ptweb.mapper.UserMapper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -57,6 +56,9 @@ public class Torrent {
 
     @TableField(value = "tag", typeHandler = JacksonTypeHandler.class)
     private List<Long> tag;  // 存储多个 Tag 的 ID
+    private int completedCount;
+    private int leecherCount;
+    private int seederCount;
 
     public String getUsernameWithAnonymous(String username, boolean canSeeAnonymous) {
         return canSeeAnonymous || !anonymous ? username : "Anonymous";
