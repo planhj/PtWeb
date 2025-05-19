@@ -19,8 +19,6 @@ public class UserBasicResponseDTO extends ResponsePojo {
     private String avatar;
     private String customTitle;
     private String signature;
-    private String downloadBandwidth;
-    private String uploadBandwidth;
     private long downloaded;
     private long uploaded;
     private BigDecimal score;
@@ -33,8 +31,6 @@ public class UserBasicResponseDTO extends ResponsePojo {
         this.avatar = user.getAvatar();
         this.customTitle = user.getCustomTitle();
         this.signature = user.getSignature();
-        this.downloadBandwidth = user.getDownloadBandwidth();
-        this.uploadBandwidth = user.getUploadBandwidth();
         this.downloaded = user.getDownloaded();
         this.uploaded = user.getUploaded();
         this.score = user.getScore();

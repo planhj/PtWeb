@@ -21,14 +21,11 @@ public class UserResponseDTO extends ResponsePojo {
     private String customTitle;
     private String signature;
     private String language;
-    private String downloadBandwidth;
-    private String uploadBandwidth;
     private long downloaded;
     private long uploaded;
     private long realDownloaded;
     private long realUploaded;
     private BigDecimal score;
-    private int inviteSlot;
     private long seedingTime;
 
     public UserResponseDTO(@NotNull User user) {
@@ -39,14 +36,11 @@ public class UserResponseDTO extends ResponsePojo {
         this.avatar = user.getAvatar();
         this.customTitle = user.getCustomTitle();
         this.signature = user.getSignature();
-        this.downloadBandwidth = user.getDownloadBandwidth();
-        this.uploadBandwidth = user.getUploadBandwidth();
         this.downloaded = user.getDownloaded();
         this.uploaded = user.getUploaded();
         this.realDownloaded = user.getRealDownloaded();
         this.realUploaded = user.getRealUploaded();
         this.score = user.getScore();
-        this.inviteSlot = user.getInviteSlot();
         this.seedingTime = user.getSeedingTime();
     }
 }

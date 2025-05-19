@@ -35,7 +35,7 @@ public class InviteCodeService {
         }
 
         // 检查积分是否足够
-        if (user.getScore().compareTo(BigDecimal.valueOf(500)) < 0) {
+        if (user.getScore().compareTo(BigDecimal.valueOf(5000)) < 0) {
             throw new IllegalStateException("积分不足，无法生成邀请码（需要500积分）");
         }
 
