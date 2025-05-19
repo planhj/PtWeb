@@ -5,6 +5,10 @@ redis:
   database: 3
 
 spring:
+  web:
+    resources:
+      static-locations: file:uploads/
+
   profiles:
     active: test,caching,db
 

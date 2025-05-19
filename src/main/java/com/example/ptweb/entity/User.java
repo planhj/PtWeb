@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.sql.Timestamp;
 
 @Data
@@ -69,5 +70,12 @@ public class User {
 
     @TableField("privacy_level")
     private PrivacyLevel privacyLevel;
+
+    @TableField("last_sign_in_date")
+    private Date lastSignInDate;
+
+    @TableField("continuous_days")
+    private Integer continuousDays;
+
 
 }

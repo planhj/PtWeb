@@ -19,4 +19,6 @@ public class RegisterRequestDTO {
     @NotEmpty
     @Email
     private String email;
+
+    private String inviteCode;
 }
