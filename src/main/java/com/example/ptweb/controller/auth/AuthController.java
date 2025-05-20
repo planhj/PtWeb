@@ -11,11 +11,15 @@ import com.example.ptweb.controller.dto.response.LoginStatusResponseDTO;
 import com.example.ptweb.controller.dto.response.UserResponseDTO;
 import com.example.ptweb.controller.dto.response.UserSessionResponseDTO;
 import com.example.ptweb.entity.InviteCode;
+import com.example.ptweb.entity.PasswordResetToken;
 import com.example.ptweb.entity.User;
 import com.example.ptweb.exception.APIErrorCode;
 import com.example.ptweb.exception.APIGenericException;
 import com.example.ptweb.mapper.InviteCodeMapper;
+import com.example.ptweb.mapper.PasswordResetTokenMapper;
+import com.example.ptweb.mapper.UserMapper;
 import com.example.ptweb.service.AuthenticationService;
+import com.example.ptweb.service.MailService;
 import com.example.ptweb.service.UserService;
 import com.example.ptweb.type.CustomTitle;
 import com.example.ptweb.util.IPUtil;
@@ -25,6 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,6 +57,14 @@ public class AuthController {
     private UserService userService;
     @Autowired
     private AuthenticationService authenticationService;
+    @Autowired
+    private UserMapper userMapper;
+    @Autowired
+    private PasswordResetTokenMapper passwordResetTokenMapper;
+    @Autowired
+    private MailService mailService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @PostMapping("/login")
     public UserSessionResponseDTO login(@RequestBody LoginRequestDTO login) {
@@ -76,6 +90,7 @@ public class AuthController {
         }
 
         StpUtil.login(user.getId());
+        log.info(user.toString());
         return getUserBasicInformation(user);
     }
 
@@ -184,4 +199,31 @@ public class AuthController {
         return new UserSessionResponseDTO(tokenInfo, new UserResponseDTO(user));
     }
 
+    @PostMapping("/password/forgot")
+    public ResponseEntity<?> forgotPassword(@RequestParam String email) {
+        System.out.println("forgotPassword called, email=" + email);
+        User user = userMapper.selectOne(new QueryWrapper<User>().eq("email", email));
+        if (user == null) {
+            return ResponseEntity.badRequest().body("邮箱未注册");
+        }
+        String token = UUID.randomUUID().toString();
+        PasswordResetToken resetToken = new PasswordResetToken(user.getId(), token, LocalDateTime.now().plusMinutes(30));
+        passwordResetTokenMapper.insert(resetToken);
+        // 发送邮件（伪代码）
+        mailService.send(email, "重置密码", "点击链接重置: https://yourdomain.com/reset-password?token=" + token);
+        return ResponseEntity.ok("重置邮件已发送");
+    }
+
+    @PostMapping("/password/reset")
+    public ResponseEntity<?> resetPassword(@RequestParam String token, @RequestParam String newPassword) {
+        PasswordResetToken resetToken = passwordResetTokenMapper.selectOne(new QueryWrapper<PasswordResetToken>().eq("token", token));
+        if (resetToken == null || resetToken.getExpireTime().isBefore(LocalDateTime.now())) {
+            return ResponseEntity.badRequest().body("链接无效或已过期");
+        }
+        User user = userMapper.selectById(resetToken.getUserId());
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userMapper.updateById(user);
+        passwordResetTokenMapper.deleteById(resetToken.getId());
+        return ResponseEntity.ok("密码重置成功");
+    }
 }
