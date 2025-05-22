@@ -318,7 +318,6 @@ create table user
     passkey               varchar(255)   not null,
     password              varchar(255)   not null,
     personal_access_token varchar(255)   not null,
-    privacy_level         varchar(10)    not null,
     real_downloaded       bigint         not null,
     real_uploaded         bigint         not null,
     score                 decimal(38, 2) not null,

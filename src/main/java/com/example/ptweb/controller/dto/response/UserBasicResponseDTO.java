@@ -27,9 +27,9 @@ public class UserBasicResponseDTO extends ResponsePojo {
     public UserBasicResponseDTO(@NotNull User user) {
         this.id = user.getId();
         this.username = user.getUsername();
-        this.createAt = user.getCreateAt().getTime();
+        this.createAt = System.currentTimeMillis()-user.getCreateAt().getTime();
         this.avatar = user.getAvatar();
-        this.customTitle = user.getCustomTitle();
+        this.customTitle = user.getCustomTitle().getDescription();
         this.signature = user.getSignature();
         this.downloaded = user.getDownloaded();
         this.uploaded = user.getUploaded();

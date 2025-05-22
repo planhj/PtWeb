@@ -122,9 +122,8 @@ public class AnnounceService {
 //        long promoUp = (long) user.getGroup().getPromotionPolicy().applyUploadRatio(lastDownloaded);
 //        long promoDown = (long) user.getGroup().getPromotionPolicy().applyDownloadRatio(lastUploaded);
         PromotionPolicy promotionPolicy = promotionService.getPromotionPolicy(torrent.getPromotionPolicyId());
-        long promoUp = (long) promotionPolicy.applyUploadRatio(uploadedOffset);
-        long promoDown = (long) promotionPolicy.applyDownloadRatio(downloadedOffset);
-
+        long promoUp = (long) (uploadedOffset*promotionPolicy.getUploadRatio()* user.getUploadedRatio());
+        long promoDown = (long) (downloadedOffset*promotionPolicy.getDownloadRatio()* user.getDownloadRatio());
         user.setUploaded(user.getUploaded() + promoUp);
         user.setDownloaded(user.getDownloaded() + promoDown);
         user.setSeedingTime(user.getSeedingTime() + announceInterval);

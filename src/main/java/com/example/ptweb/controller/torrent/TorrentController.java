@@ -148,6 +148,7 @@ public class TorrentController {
 
     @PostMapping("/search")
     public TorrentSearchResultResponseDTO search(@RequestBody(required = false) @Nullable SearchTorrentRequestDTO searchRequestDTO) {
+        log.info("Search torrent {}", searchRequestDTO);
         if (searchRequestDTO == null) {
             searchRequestDTO = new SearchTorrentRequestDTO();
         }

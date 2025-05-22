@@ -4,7 +4,6 @@ import com.example.ptweb.entity.Peer;
 import com.example.ptweb.entity.User;
 import com.example.ptweb.other.ResponsePojo;
 import com.example.ptweb.service.UserService;
-import com.example.ptweb.type.PrivacyLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.validation.annotation.Validated;
@@ -35,11 +34,7 @@ public class PeerInfoResponseDTO extends ResponsePojo {
     public PeerInfoResponseDTO(Peer peer) {
         this.id = peer.getId();
         this.user = userService.getUser(peer.getUserId());
-        if (this.user.getPrivacyLevel().ordinal() > PrivacyLevel.MEDIUM.ordinal()) {
-            this.userDto = null;
-        } else {
-            this.userDto = new UserBasicResponseDTO(this.user);
-        }
+        this.userDto = new UserBasicResponseDTO(this.user);
         this.infoHash = peer.getInfoHash();
         this.peerId = peer.getPeerId();
         this.userAgent = peer.getUserAgent();

@@ -17,7 +17,7 @@ import com.example.ptweb.exception.APIGenericException;
 import com.example.ptweb.mapper.InviteCodeMapper;
 import com.example.ptweb.service.AuthenticationService;
 import com.example.ptweb.service.UserService;
-import com.example.ptweb.type.PrivacyLevel;
+import com.example.ptweb.type.CustomTitle;
 import com.example.ptweb.util.IPUtil;
 import com.example.ptweb.util.PasswordHash;
 import jakarta.servlet.http.HttpServletRequest;
@@ -54,7 +54,6 @@ public class AuthController {
 
     @PostMapping("/login")
     public UserSessionResponseDTO login(@RequestBody LoginRequestDTO login) {
-        log.info("{}",login);
         String ip = IPUtil.getRequestIp(request);
         if (StringUtils.isEmpty(login.getUser())) {
             throw new APIGenericException(MISSING_PARAMETERS, "User parameter is required");
@@ -99,6 +98,7 @@ public class AuthController {
             if (user == null) {
                 return new LoginStatusResponseDTO(false, false, false, null);
             } else {
+                log.info("{}",user);
                 return new LoginStatusResponseDTO(true, true, false, getUserBasicInformation(user));
             }
         } catch (NotLoginException e) {
@@ -151,13 +151,12 @@ public class AuthController {
                 UUID.randomUUID().toString(),
                 Timestamp.from(Instant.now()),
                 "https://www.baidu.com/favicon.ico",
-                "测试用户",
+                CustomTitle.NORMAL,
                 "这个用户很懒，还没有个性签名",
                 0L, 0L, 0L, 0L,
                 BigDecimal.ZERO,
                 0L,
                 UUID.randomUUID().toString(),
-                PrivacyLevel.LOW,
                 null,
                 0
         ));
