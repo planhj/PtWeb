@@ -5,6 +5,21 @@ redis:
   database: 3
 
 spring:
+  mail:
+    host: smtp.qq.com
+    port: 465
+    username: 3420678681@qq.com       # 必须是完整邮箱地址
+    password: lvzujmxnwvvidbbd
+    protocol: smtps
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          ssl:
+            enable: true   # SSL连接 465 端口时建议加上
   web:
     resources:
       static-locations: file:uploads/
@@ -82,3 +97,6 @@ sa-token:
   is-concurrent: true
   is-share: false
   token-style: random-128
+  is-read-body: false
+  is-read-header: true
+  is-read-cookie: true

@@ -18,10 +18,15 @@ public class PasswordResetToken {
 
     private LocalDateTime expireTime;
 
-    public PasswordResetToken(long id, String token, LocalDateTime localDateTime) {
+    public PasswordResetToken(Long userId, String token, LocalDateTime expireTime) {
+        this.userId = userId;
+        this.token = token;
+        this.expireTime = expireTime;
     }
 
+
     // ===== Getter 和 Setter =====
+
 
     public Long getId() {
         return id;

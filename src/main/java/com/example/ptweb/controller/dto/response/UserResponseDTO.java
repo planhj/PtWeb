@@ -20,6 +20,7 @@ public class UserResponseDTO extends ResponsePojo {
     private String avatar;
     private String customTitle;
     private String signature;
+    private String language;
     private long downloaded;
     private long uploaded;
     private long realDownloaded;
@@ -31,9 +32,9 @@ public class UserResponseDTO extends ResponsePojo {
         this.id = user.getId();
         this.email = user.getEmail();
         this.username = user.getUsername();
-        this.createdAt = System.currentTimeMillis()-user.getCreateAt().getTime();
+        this.createdAt = user.getCreateAt().getTime();
         this.avatar = user.getAvatar();
-        this.customTitle = user.getCustomTitle().getDescription();
+        this.customTitle = user.getCustomTitle();
         this.signature = user.getSignature();
         this.downloaded = user.getDownloaded();
         this.uploaded = user.getUploaded();

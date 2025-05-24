@@ -41,12 +41,6 @@ public class User {
 
     private String signature;
 
-    @TableField("download_bandwidth")
-    private String downloadBandwidth;
-
-    @TableField("upload_bandwidth")
-    private String uploadBandwidth;
-
     private long downloaded;
 
     private long uploaded;
@@ -59,8 +53,6 @@ public class User {
 
     private BigDecimal score;
 
-    @TableField("invite_slot")
-    private int inviteSlot;
 
     @TableField("seeding_time")
     private long seedingTime;

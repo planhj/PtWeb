@@ -1,5 +1,4 @@
 use pt;
-
 create table categories
 (
     id   bigint auto_increment
@@ -13,6 +12,47 @@ create table categories
 
 create index IDXoul14ho7bctbefv8jywp5v3i2
     on categories (slug);
+
+create table forum_sections
+(
+    id            bigint auto_increment
+        primary key,
+    name          varchar(100)                       not null,
+    description   text                               null,
+    display_order int      default 0                 null,
+    created_at    datetime default CURRENT_TIMESTAMP null,
+    updated_at    datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP
+);
+
+create table invite_code
+(
+    id          bigint auto_increment comment '主键 ID'
+        primary key,
+    code        varchar(255)         not null comment '邀请码',
+    creator_id  bigint               not null comment '创建者用户 ID',
+    used        tinyint(1) default 0 not null comment '是否已使用',
+    used_by     bigint               null comment '使用者用户 ID',
+    create_time datetime             not null comment '创建时间',
+    used_time   datetime             null comment '使用时间'
+)
+    comment '邀请码表';
+
+create table item_categories
+(
+    category_id   int auto_increment
+        primary key,
+    name          varchar(50)          not null,
+    description   text                 null,
+    display_order int        default 0 not null,
+    is_active     tinyint(1) default 1 not null,
+    price         mediumtext           not null
+);
+
+create index idx_category_active
+    on item_categories (is_active);
+
+create index idx_category_order
+    on item_categories (display_order);
 
 create table login_history
 (
@@ -266,35 +306,122 @@ create table tags
         unique (name)
 );
 
-CREATE TABLE user
+create table user
 (
-    id                    BIGINT AUTO_INCREMENT PRIMARY KEY,
-    avatar                VARCHAR(255)   NOT NULL,
-    create_at             DATETIME(6)    NOT NULL,
-    custom_title          VARCHAR(255)   NOT NULL,
-    download_bandwidth    VARCHAR(255)   NOT NULL,
-    downloaded            BIGINT         NOT NULL,
-    email                 VARCHAR(255)   NOT NULL,
-    invite_slot           INT            NOT NULL,
-    passkey               VARCHAR(255)   NOT NULL,
-    password              VARCHAR(255)   NOT NULL,
-    personal_access_token VARCHAR(255)   NOT NULL,
-    privacy_level         VARCHAR(10)    NOT NULL,
-    real_downloaded       BIGINT         NOT NULL,
-    real_uploaded         BIGINT         NOT NULL,
-    score                 DECIMAL(38, 2) NOT NULL,
-    seeding_time          BIGINT         NOT NULL,
-    signature             VARCHAR(255)   NOT NULL,
-    upload_bandwidth      VARCHAR(255)   NOT NULL,
-    uploaded              BIGINT         NOT NULL,
-    username              VARCHAR(255)   NOT NULL,
-    last_sign_in_date     DATE,
-    continuous_days       INT DEFAULT 0,
-    CONSTRAINT UK2v3v0uxl1rke2bks4g123axwq UNIQUE (passkey),
-    CONSTRAINT UKob8kqyqqgmefl0aco34akdtpe UNIQUE (email),
-    CONSTRAINT UKsb8bbouer5wak8vyiiy4pf2bx UNIQUE (username)
+    id                    bigint auto_increment
+        primary key,
+    avatar                varchar(255)   not null,
+    create_at             datetime(6)    not null,
+    custom_title          varchar(255)   not null,
+    downloaded            bigint         not null,
+    email                 varchar(255)   not null,
+    passkey               varchar(255)   not null,
+    password              varchar(255)   not null,
+    personal_access_token varchar(255)   not null,
+    privacy_level         varchar(10)    not null,
+    real_downloaded       bigint         not null,
+    real_uploaded         bigint         not null,
+    score                 decimal(38, 2) not null,
+    seeding_time          bigint         not null,
+    signature             varchar(255)   not null,
+    uploaded              bigint         not null,
+    username              varchar(255)   not null,
+    last_sign_in_date     date           null,
+    continuous_days       int default 0  null,
+    constraint UK2v3v0uxl1rke2bks4g123axwq
+        unique (passkey),
+    constraint UKob8kqyqqgmefl0aco34akdtpe
+        unique (email),
+    constraint UKsb8bbouer5wak8vyiiy4pf2bx
+        unique (username)
 );
 
+create table forum_posts
+(
+    id         bigint auto_increment
+        primary key,
+    section_id bigint                             not null,
+    user_id    bigint                             not null,
+    title      varchar(255)                       not null,
+    content    text                               not null,
+    created_at datetime default CURRENT_TIMESTAMP null,
+    updated_at datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    view_count int      default 0                 null,
+    viwe       int      default 0                 null,
+    constraint forum_posts_ibfk_1
+        foreign key (section_id) references forum_sections (id),
+    constraint forum_posts_ibfk_2
+        foreign key (user_id) references user (id)
+);
+
+create table forum_comments
+(
+    id         bigint auto_increment
+        primary key,
+    post_id    bigint                             not null,
+    user_id    bigint                             not null,
+    content    text                               not null,
+    created_at datetime default CURRENT_TIMESTAMP null,
+    viwe       int      default 0                 null,
+    constraint forum_comments_ibfk_1
+        foreign key (post_id) references forum_posts (id),
+    constraint forum_comments_ibfk_2
+        foreign key (user_id) references user (id)
+);
+
+create table forum_ccomments
+(
+    id         bigint auto_increment
+        primary key,
+    comment_id bigint                             not null,
+    user_id    bigint                             not null,
+    content    text                               not null,
+    created_at datetime default CURRENT_TIMESTAMP null,
+    viwe       int      default 0                 null,
+    post_id    bigint                             not null,
+    constraint forum_ccomments_ibfk_1
+        foreign key (post_id) references forum_posts (id),
+    constraint forum_ccomments_ibfk_2
+        foreign key (comment_id) references forum_comments (id),
+    constraint forum_ccomments_ibfk_3
+        foreign key (user_id) references user (id)
+);
+
+create index comment_id
+    on forum_ccomments (comment_id);
+
+create index post_id
+    on forum_ccomments (post_id);
+
+create index user_id
+    on forum_ccomments (user_id);
+
+create index post_id
+    on forum_comments (post_id);
+
+create index user_id
+    on forum_comments (user_id);
+
+create table forum_post_likes
+(
+    user_id  bigint                             not null,
+    post_id  bigint                             not null,
+    liked_at datetime default CURRENT_TIMESTAMP null,
+    primary key (user_id, post_id),
+    constraint forum_post_likes_ibfk_1
+        foreign key (user_id) references user (id),
+    constraint forum_post_likes_ibfk_2
+        foreign key (post_id) references forum_posts (id)
+);
+
+create index post_id
+    on forum_post_likes (post_id);
+
+create index section_id
+    on forum_posts (section_id);
+
+create index user_id
+    on forum_posts (user_id);
 
 create table peers
 (
@@ -306,7 +433,7 @@ create table peers
     ip             varchar(255) not null,
     to_go          bigint       not null,
     partial_seeder bit          not null,
-    passkey        varchar(255) not null,
+    pass_key       varchar(255) not null,
     peer_id        varchar(255) not null,
     port           int          not null,
     seeder         bit          not null,
@@ -325,6 +452,19 @@ create table peers
 create index IDXmmvk33liy7j5u9e4qhxw2d7h5
     on peers (update_at);
 
+create table sign_in
+(
+    id        bigint auto_increment
+        primary key,
+    user_id   bigint not null,
+    sign_date date   not null,
+    constraint sign_in_ibfk_1
+        foreign key (user_id) references user (id)
+);
+
+create index user_id
+    on sign_in (user_id);
+
 create table torrents
 (
     id                  bigint auto_increment
@@ -342,6 +482,9 @@ create table torrents
     promotion_policy_id bigint                               null,
     description         text                                 null,
     tag                 json                                 null,
+    seeder_count        int        default 0                 not null,
+    leecher_count       int        default 0                 not null,
+    completed_count     int        default 0                 not null,
     constraint UKhag2ej1vo8snvirb1lv4b8r4x
         unique (info_hash),
     constraint FKb10p9e9dlvqoreml2xndoc6jd
@@ -365,19 +508,20 @@ create table transfer_history
 (
     id                    bigint auto_increment
         primary key,
-    actual_downloaded     bigint      not null,
-    actual_uploaded       bigint      not null,
-    download_speed        bigint      not null,
-    downloaded            bigint      not null,
-    have_complete_history bit         not null,
-    last_event            smallint    not null,
-    to_go                 bigint      not null,
-    started_at            datetime(6) not null,
-    updated_at            datetime(6) not null,
-    upload_speed          bigint      not null,
-    uploaded              bigint      not null,
-    torrent_id            bigint      null,
-    user_id               bigint      null,
+    actual_downloaded     bigint                      not null,
+    actual_uploaded       bigint                      not null,
+    download_speed        bigint                      not null,
+    downloaded            bigint                      not null,
+    have_complete_history bit                         not null,
+    last_event            varchar(10)                 not null,
+    to_go                 bigint                      not null,
+    started_at            datetime(6)                 not null,
+    updated_at            datetime(6)                 not null,
+    upload_speed          bigint                      not null,
+    uploaded              bigint                      not null,
+    torrent_id            bigint                      null,
+    user_id               bigint                      null,
+    bonus_given           decimal(38, 2) default 0.00 not null,
     constraint UKrm5p4xv3rb2vm6psql5je94jh
         unique (user_id, torrent_id),
     constraint FKc6oy8ob3djd6sgg47u2ak36m0
@@ -386,19 +530,9 @@ create table transfer_history
         foreign key (torrent_id) references torrents (id)
 );
 
-create table item_categories
-(
-    category_id   int auto_increment
-        primary key,
-    name          varchar(50)          not null,
-    description   text                 null,
-    display_order int        default 0 not null,
-    is_active     tinyint(1) default 1 not null,
-    price         long                 not null
+CREATE TABLE password_reset_token (
+                                      id BIGINT AUTO_INCREMENT PRIMARY KEY, -- 主键 ID
+                                      user_id BIGINT NOT NULL,              -- 对应用户 ID
+                                      token VARCHAR(128) NOT NULL UNIQUE,   -- 重置用的 token，唯一
+                                      expire_time DATETIME NOT NULL         -- 过期时间
 );
-
-create index idx_category_active
-    on item_categories (is_active);
-
-create index idx_category_order
-    on item_categories (display_order);
