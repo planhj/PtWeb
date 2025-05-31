@@ -318,6 +318,7 @@ create table user
     passkey               varchar(255)   not null,
     password              varchar(255)   not null,
     personal_access_token varchar(255)   not null,
+    privacy_level         varchar(10)    not null,
     real_downloaded       bigint         not null,
     real_uploaded         bigint         not null,
     score                 decimal(38, 2) not null,
@@ -529,3 +530,9 @@ create table transfer_history
         foreign key (torrent_id) references torrents (id)
 );
 
+CREATE TABLE password_reset_token (
+                                      id BIGINT AUTO_INCREMENT PRIMARY KEY, -- 主键 ID
+                                      user_id BIGINT NOT NULL,              -- 对应用户 ID
+                                      token VARCHAR(128) NOT NULL UNIQUE,   -- 重置用的 token，唯一
+                                      expire_time DATETIME NOT NULL         -- 过期时间
+);
