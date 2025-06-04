@@ -33,21 +33,15 @@ public class TorrentPromotionAdjustJob extends QuartzJobBean {
             boolean isNew = nowMillis - createdMillis < 24 * 60 * 60 * 1000;
             boolean lowSeeder = torrent.getSeederCount() < 4;
             long currentPolicy = torrent.getPromotionPolicyId();
-            if (isNew && lowSeeder) {
-                if (currentPolicy != 3) {
-                    torrent.setPromotionPolicyId(3L);
-                    updated++;
-                }
-            } else if (isNew) {
-                if (currentPolicy != 1 && currentPolicy != 3) {
-                    torrent.setPromotionPolicyId(2L);
-                    updated++;
-                }
+            if (isNew) {
+                torrent.setPromotionPolicyId(2L);
+                updated++;
             } else if (lowSeeder) {
-                if (currentPolicy != 2 && currentPolicy != 3) {
-                    torrent.setPromotionPolicyId(1L);
-                    updated++;
-                }
+                torrent.setPromotionPolicyId(1L);
+                updated++;
+            }else{
+                torrent.setPromotionPolicyId(3L);
+                updated++;
             }
         }
 

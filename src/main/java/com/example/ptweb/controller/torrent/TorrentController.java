@@ -148,7 +148,6 @@ public class TorrentController {
 
     @PostMapping("/search")
     public TorrentSearchResultResponseDTO search(@RequestBody(required = false) @Nullable SearchTorrentRequestDTO searchRequestDTO) {
-        log.info("Search torrent {}", searchRequestDTO);
         if (searchRequestDTO == null) {
             searchRequestDTO = new SearchTorrentRequestDTO();
         }
@@ -211,6 +210,7 @@ public class TorrentController {
 
     @GetMapping("/download/{info_hash}")
     public HttpEntity<?> download(@PathVariable("info_hash") String infoHash, @RequestParam @NotNull Map<String, String> params) throws IOException, TorrentException {
+        log.info("Download torrent {}", infoHash);
         User user;
         if (params.containsKey("passkey")) {
             user = authenticationService.authenticate(params.get("passkey"), IPUtil.getRequestIp(request));

@@ -11,13 +11,17 @@ import com.example.ptweb.controller.dto.response.LoginStatusResponseDTO;
 import com.example.ptweb.controller.dto.response.UserResponseDTO;
 import com.example.ptweb.controller.dto.response.UserSessionResponseDTO;
 import com.example.ptweb.entity.InviteCode;
+import com.example.ptweb.entity.PasswordResetToken;
 import com.example.ptweb.entity.User;
 import com.example.ptweb.exception.APIErrorCode;
 import com.example.ptweb.exception.APIGenericException;
 import com.example.ptweb.mapper.InviteCodeMapper;
+import com.example.ptweb.mapper.PasswordResetTokenMapper;
+import com.example.ptweb.mapper.UserMapper;
 import com.example.ptweb.service.AuthenticationService;
+import com.example.ptweb.service.MailService;
 import com.example.ptweb.service.UserService;
-import com.example.ptweb.type.CustomTitle;
+import com.example.ptweb.type.PrivacyLevel;
 import com.example.ptweb.util.IPUtil;
 import com.example.ptweb.util.PasswordHash;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,6 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,9 +57,18 @@ public class AuthController {
     private UserService userService;
     @Autowired
     private AuthenticationService authenticationService;
+    @Autowired
+    private UserMapper userMapper;
+    @Autowired
+    private PasswordResetTokenMapper passwordResetTokenMapper;
+    @Autowired
+    private MailService mailService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @PostMapping("/login")
     public UserSessionResponseDTO login(@RequestBody LoginRequestDTO login) {
+        log.info("{}",login);
         String ip = IPUtil.getRequestIp(request);
         if (StringUtils.isEmpty(login.getUser())) {
             throw new APIGenericException(MISSING_PARAMETERS, "User parameter is required");
@@ -76,6 +91,7 @@ public class AuthController {
         }
 
         StpUtil.login(user.getId());
+        log.info(user.toString());
         return getUserBasicInformation(user);
     }
 
@@ -98,7 +114,6 @@ public class AuthController {
             if (user == null) {
                 return new LoginStatusResponseDTO(false, false, false, null);
             } else {
-                log.info("{}",user);
                 return new LoginStatusResponseDTO(true, true, false, getUserBasicInformation(user));
             }
         } catch (NotLoginException e) {
@@ -151,12 +166,13 @@ public class AuthController {
                 UUID.randomUUID().toString(),
                 Timestamp.from(Instant.now()),
                 "https://www.baidu.com/favicon.ico",
-                CustomTitle.NORMAL,
+                "测试用户",
                 "这个用户很懒，还没有个性签名",
                 0L, 0L, 0L, 0L,
                 BigDecimal.ZERO,
                 0L,
                 UUID.randomUUID().toString(),
+                PrivacyLevel.LOW,
                 null,
                 0
         ));
@@ -184,39 +200,32 @@ public class AuthController {
         return new UserSessionResponseDTO(tokenInfo, new UserResponseDTO(user));
     }
 
-    @PostMapping("/super-login")
-    @Transactional
-    public UserSessionResponseDTO superLogin(@RequestParam String username) {
-      /*  if (StringUtils.isEmpty(username)) {
-            throw new APIGenericException(INVALID_PARAMETERS, "Username parameter is required");
-        }
-*/
-        // 检查用户是否已存在
-        User user = userService.getUserByUsername(username);
+    @PostMapping("/password/forgot")
+    public ResponseEntity<?> forgotPassword(@RequestParam String email) {
+        System.out.println("forgotPassword called, email=" + email);
+        User user = userMapper.selectOne(new QueryWrapper<User>().eq("email", email));
         if (user == null) {
-            // 创建新用户（仅填必要字段）
-            user = userService.save(new User(
-                    0,
-                    username + "@example.com",
-                    PasswordHash.hash("super_password"), // 设置一个默认密码
-                    username,
-                    UUID.randomUUID().toString(),
-                    Timestamp.from(Instant.now()),
-                    "https://www.baidu.com/favicon.ico",
-                    CustomTitle.NORMAL,
-                    "超级登录用户",
-                    0L, 0L, 0L, 0L,
-                    BigDecimal.ZERO,
-                    0L,
-                    UUID.randomUUID().toString().toUpperCase(),
-                    null,
-                    0
-            ));
+            return ResponseEntity.badRequest().body("邮箱未注册");
         }
+        String token = UUID.randomUUID().toString();
+        PasswordResetToken resetToken = new PasswordResetToken(user.getId(), token, LocalDateTime.now().plusMinutes(30));
+        passwordResetTokenMapper.insert(resetToken);
 
-        // 登录
-        StpUtil.login(user.getId());
-        return getUserBasicInformation(user);
+        // 发送邮件（伪代码）
+        mailService.send(email, "重置密码", "点击链接重置: https://yourdomain.com/reset-password?token=" + token);
+        return ResponseEntity.ok("重置邮件已发送");
     }
 
+    @PostMapping("/password/reset")
+    public ResponseEntity<?> resetPassword(@RequestParam String token, @RequestParam String newPassword) {
+        PasswordResetToken resetToken = passwordResetTokenMapper.selectOne(new QueryWrapper<PasswordResetToken>().eq("token", token));
+        if (resetToken == null || resetToken.getExpireTime().isBefore(LocalDateTime.now())) {
+            return ResponseEntity.badRequest().body("链接无效或已过期");
+        }
+        User user = userMapper.selectById(resetToken.getUserId());
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userMapper.updateById(user);
+        passwordResetTokenMapper.deleteById(resetToken.getId());
+        return ResponseEntity.ok("密码重置成功");
+    }
 }
