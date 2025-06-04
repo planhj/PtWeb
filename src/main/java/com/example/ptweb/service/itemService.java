@@ -54,7 +54,14 @@ public class itemService {
         User user = userMapper.selectById(userId);
         if (user == null) return;
 
+        // 获取当前称号
+        CustomTitle currentTitle = user.getCustomTitle();
+
         if (categoryId == 3L) {
+            // 如果当前是 SVIP，就不能降级为 VIP
+            if (CustomTitle.SVIP.equals(currentTitle)) {
+                return; // ❌ 不允许降级，直接返回
+            }
             user.setCustomTitle(CustomTitle.VIP);
         } else if (categoryId == 4L) {
             user.setCustomTitle(CustomTitle.SVIP);
@@ -64,6 +71,7 @@ public class itemService {
 
         userMapper.updateById(user); // ✅ 更新数据库中的用户称号
     }
+
 
     private item_categories getAvailableItem(int itemId) {
         item_categories item = itemCategoriesMapper.selectById(itemId);

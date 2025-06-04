@@ -2,6 +2,7 @@ package com.example.ptweb.controller.Forum;
 
 
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.example.ptweb.controller.Forum.dto.ForumCommentDTO;
 import com.example.ptweb.entity.ForumComment;
 import lombok.RequiredArgsConstructor;
@@ -40,10 +41,10 @@ public class ForumCommentController {
     }
 
 
-    @PostMapping("/post/{post_id}/{user_id}")
+    @PostMapping("/post/{post_id}")
     public ForumCommentDTO createComment(@PathVariable("post_id") Long postId,
-                                         @PathVariable("user_id") Long userId,
                                          @RequestBody ForumComment comment) {
+        Long userId = StpUtil.getLoginIdAsLong();
         comment.setPostId(postId);
         comment.setUserId(userId);
         return commentService.createComment(comment);

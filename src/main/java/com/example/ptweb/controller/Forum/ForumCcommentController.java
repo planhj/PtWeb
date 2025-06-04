@@ -2,6 +2,7 @@ package com.example.ptweb.controller.Forum;
 
 
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.example.ptweb.controller.Forum.dto.ForumCcommentDTO;
 import com.example.ptweb.entity.ForumCcomment;
 import com.example.ptweb.entity.ForumComment;
@@ -37,11 +38,11 @@ public class ForumCcommentController {
         return ccommentService.getCcommentDTOsByCommentId(commentId);
     }
 
-    @PostMapping("/{post_id}/{comment_id}/{user_id}")
+    @PostMapping("/{post_id}/{comment_id}")
     public ForumCcommentDTO createComment(@PathVariable("post_id") Long postId,
                                           @PathVariable("comment_id") Long comentId,
-                                          @PathVariable("user_id") Long userId,
                                           @RequestBody ForumCcomment ccomment) {
+        Long userId = StpUtil.getLoginIdAsLong();
         ccomment.setCommentId(comentId);
         ccomment.setUserId(userId);
         return ccommentService.createCcomment(ccomment, postId);

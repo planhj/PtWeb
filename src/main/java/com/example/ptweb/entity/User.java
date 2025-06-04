@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.example.ptweb.type.PrivacyLevel;
+import com.example.ptweb.type.CustomTitle;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,7 +37,7 @@ public class User {
     private String avatar;
 
     @TableField("custom_title")
-    private String customTitle;
+    private CustomTitle customTitle;
 
     private String signature;
 
@@ -53,15 +53,11 @@ public class User {
 
     private BigDecimal score;
 
-
     @TableField("seeding_time")
     private long seedingTime;
 
     @TableField("personal_access_token")
     private String personalAccessToken;
-
-    @TableField("privacy_level")
-    private PrivacyLevel privacyLevel;
 
     @TableField("last_sign_in_date")
     private Date lastSignInDate;
@@ -69,5 +65,10 @@ public class User {
     @TableField("continuous_days")
     private Integer continuousDays;
 
-
+    public double getDownloadRatio() {
+        return customTitle != null ? customTitle.getDownloadRatio() : 1;
+    }
+    public double getUploadedRatio() {
+        return customTitle != null ? customTitle.getUploadRatio() : 1;
+    }
 }
