@@ -25,8 +25,6 @@ public class PasswordResetToken {
     }
 
 
-    // ===== Getter 和 Setter =====
-
 
     public Long getId() {
         return id;

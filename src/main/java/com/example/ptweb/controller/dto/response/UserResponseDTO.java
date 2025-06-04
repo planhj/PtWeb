@@ -34,7 +34,7 @@ public class UserResponseDTO extends ResponsePojo {
         this.username = user.getUsername();
         this.createdAt = user.getCreateAt().getTime();
         this.avatar = user.getAvatar();
-        this.customTitle = user.getCustomTitle();
+        this.customTitle = user.getCustomTitle().getDescription();
         this.signature = user.getSignature();
         this.downloaded = user.getDownloaded();
         this.uploaded = user.getUploaded();

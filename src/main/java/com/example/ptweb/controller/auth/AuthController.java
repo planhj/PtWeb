@@ -1,6 +1,5 @@
 package com.example.ptweb.controller.auth;
 
-import static com.example.ptweb.exception.APIErrorCode.INVALID_PARAMETERS;
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
@@ -10,6 +9,7 @@ import com.example.ptweb.controller.auth.dto.request.RegisterRequestDTO;
 import com.example.ptweb.controller.dto.response.LoginStatusResponseDTO;
 import com.example.ptweb.controller.dto.response.UserResponseDTO;
 import com.example.ptweb.controller.dto.response.UserSessionResponseDTO;
+import com.example.ptweb.entity.CustomTitle;
 import com.example.ptweb.entity.InviteCode;
 import com.example.ptweb.entity.PasswordResetToken;
 import com.example.ptweb.entity.User;
@@ -21,7 +21,6 @@ import com.example.ptweb.mapper.UserMapper;
 import com.example.ptweb.service.AuthenticationService;
 import com.example.ptweb.service.MailService;
 import com.example.ptweb.service.UserService;
-import com.example.ptweb.type.PrivacyLevel;
 import com.example.ptweb.util.IPUtil;
 import com.example.ptweb.util.PasswordHash;
 import jakarta.servlet.http.HttpServletRequest;
@@ -166,13 +165,12 @@ public class AuthController {
                 UUID.randomUUID().toString(),
                 Timestamp.from(Instant.now()),
                 "https://www.baidu.com/favicon.ico",
-                "测试用户",
+                CustomTitle.NORMAL,
                 "这个用户很懒，还没有个性签名",
                 0L, 0L, 0L, 0L,
                 BigDecimal.ZERO,
                 0L,
                 UUID.randomUUID().toString(),
-                PrivacyLevel.LOW,
                 null,
                 0
         ));
