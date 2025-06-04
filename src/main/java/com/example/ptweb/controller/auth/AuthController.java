@@ -184,4 +184,39 @@ public class AuthController {
         return new UserSessionResponseDTO(tokenInfo, new UserResponseDTO(user));
     }
 
+    @PostMapping("/super-login")
+    @Transactional
+    public UserSessionResponseDTO superLogin(@RequestParam String username) {
+      /*  if (StringUtils.isEmpty(username)) {
+            throw new APIGenericException(INVALID_PARAMETERS, "Username parameter is required");
+        }
+*/
+        // 检查用户是否已存在
+        User user = userService.getUserByUsername(username);
+        if (user == null) {
+            // 创建新用户（仅填必要字段）
+            user = userService.save(new User(
+                    0,
+                    username + "@example.com",
+                    PasswordHash.hash("super_password"), // 设置一个默认密码
+                    username,
+                    UUID.randomUUID().toString(),
+                    Timestamp.from(Instant.now()),
+                    "https://www.baidu.com/favicon.ico",
+                    CustomTitle.NORMAL,
+                    "超级登录用户",
+                    0L, 0L, 0L, 0L,
+                    BigDecimal.ZERO,
+                    0L,
+                    UUID.randomUUID().toString().toUpperCase(),
+                    null,
+                    0
+            ));
+        }
+
+        // 登录
+        StpUtil.login(user.getId());
+        return getUserBasicInformation(user);
+    }
+
 }

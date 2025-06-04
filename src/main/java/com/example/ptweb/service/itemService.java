@@ -1,7 +1,10 @@
 package com.example.ptweb.service;
 
+import com.example.ptweb.entity.User;
+import com.example.ptweb.mapper.UserMapper;
 import com.example.ptweb.mapper.item_categoriesMapper;
 import com.example.ptweb.entity.item_categories;
+import com.example.ptweb.type.CustomTitle;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +17,7 @@ import java.util.List;
 public class itemService {
 
     private final item_categoriesMapper itemCategoriesMapper;
+    private final UserMapper userMapper;
 
     @Transactional(rollbackFor = Exception.class)
     public PurchaseResult exchangeItem(int userId, int itemId, int quantity) {
@@ -22,12 +26,43 @@ public class itemService {
         }
 
         item_categories item = getAvailableItem(itemId);
-
         int totalCost = calculateTotalCost(item, quantity);
         deductUserPoints(userId, totalCost);
+        applySpecialItemEffect(userId, item, quantity);
+        updateUserTitleByCategory(userId, item.getCategoryId());
         sendNotification(userId, item, quantity, totalCost);
 
         return buildPurchaseResult(userId, item, quantity, totalCost);
+    }
+
+
+    // ✅ 增加上传/下载量
+    private void applySpecialItemEffect(int userId, item_categories item, int quantity) {
+        long amountPerUnit = 1024L * 1024 * 500; // 每件增加500MB（单位：byte）
+
+        if (item.getId() == 1) {
+            userMapper.increaseUserUpload(userId, amountPerUnit * quantity);
+        } else if (item.getId() == 2) {
+            userMapper.increaseUserDownload(userId, amountPerUnit * quantity);
+        }
+    }
+
+
+    private void updateUserTitleByCategory(int userId, Long categoryId) {
+        if (categoryId == null) return;
+
+        User user = userMapper.selectById(userId);
+        if (user == null) return;
+
+        if (categoryId == 3L) {
+            user.setCustomTitle(CustomTitle.VIP);
+        } else if (categoryId == 4L) {
+            user.setCustomTitle(CustomTitle.SVIP);
+        } else {
+            return; // 其他分类不处理
+        }
+
+        userMapper.updateById(user); // ✅ 更新数据库中的用户称号
     }
 
     private item_categories getAvailableItem(int itemId) {
