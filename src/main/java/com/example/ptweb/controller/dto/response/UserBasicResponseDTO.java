@@ -29,7 +29,7 @@ public class UserBasicResponseDTO extends ResponsePojo {
         this.username = user.getUsername();
         this.createAt = System.currentTimeMillis()-user.getCreateAt().getTime();
         this.avatar = user.getAvatar();
-        this.customTitle = user.getCustomTitle().getDescription();
+        this.customTitle = user.getCustomTitle();
         this.signature = user.getSignature();
         this.downloaded = user.getDownloaded();
         this.uploaded = user.getUploaded();

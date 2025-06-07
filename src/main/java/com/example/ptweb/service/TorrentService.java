@@ -1,6 +1,7 @@
 package com.example.ptweb.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.ptweb.controller.torrent.dto.request.SearchTorrentRequestDTO;
@@ -9,6 +10,7 @@ import com.example.ptweb.entity.PromotionPolicy;
 import com.example.ptweb.entity.Tag;
 import com.example.ptweb.entity.Torrent;
 import com.example.ptweb.mapper.TorrentMapper;
+import org.apache.ibatis.annotations.Select;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -136,5 +138,16 @@ public class TorrentService {
         }
     }
 
+    /**
+     * 获取热门种子的 id（按 completed_count 降序，前10个）
+     */
+    public IPage<Torrent> searchHot(SearchTorrentRequestDTO dto) {
+        int page = Math.max(dto.getPage(), 1);
+        int size = dto.getEntriesPerPage() == 0 ? 10 : dto.getEntriesPerPage();
+        Page<Torrent> pageObj = new Page<>(page, size);
+        LambdaQueryWrapper<Torrent> wrapper = new LambdaQueryWrapper<>();
+        wrapper.orderByDesc(Torrent::getCompletedCount);
+        return torrentMapper.selectPage(pageObj, wrapper);
+    }
 
 }

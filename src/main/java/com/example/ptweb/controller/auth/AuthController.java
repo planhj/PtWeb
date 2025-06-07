@@ -80,9 +80,14 @@ public class AuthController {
         if (user == null) user = userService.getUserByEmail(login.getUser());
         if (user == null) {
             log.info("IP {} tried to login with not exists username {}.",ip, login.getUser());
-            authenticationService.markUserLoginFail(ip); // Mark fail because it not use authenticate
+            authenticationService.markUserLoginFail(ip);
             authenticationService.checkAccountLoginAttempts(ip);
             throw new APIGenericException(AUTHENTICATION_FAILED);
+        }
+
+        // 新增：判断用户状态
+        if (!"normal".equalsIgnoreCase(user.getStatus())) {
+            throw new APIGenericException(AUTHENTICATION_FAILED, "账号已被封禁或不可用");
         }
 
         if(!authenticationService.authenticate(user,login.getPassword(),ip)){
@@ -157,24 +162,24 @@ public class AuthController {
             throw new APIGenericException(APIErrorCode.EMAIL_ALREADY_IN_USAGE);
         }
 
-        // 创建用户
         user = userService.save(new User(
-                0,
-                register.getEmail(),
-                PasswordHash.hash(register.getPassword()),
-                register.getUsername(),
-                UUID.randomUUID().toString(),
-                Timestamp.from(Instant.now()),
-                "https://www.baidu.com/favicon.ico",
-                "测试用户",
-                "这个用户很懒，还没有个性签名",
-                0L, 0L, 0L, 0L,
-                BigDecimal.ZERO,
-                0L,
-                UUID.randomUUID().toString(),
-                PrivacyLevel.LOW,
-                null,
-                0
+            0,
+            register.getEmail(),
+            PasswordHash.hash(register.getPassword()),
+            register.getUsername(),
+            UUID.randomUUID().toString(),
+            Timestamp.from(Instant.now()),
+            "https://www.baidu.com/favicon.ico",
+            "测试用户",
+            "这个用户很懒，还没有个性签名",
+            0L, 0L, 0L, 0L,
+            BigDecimal.ZERO,
+            0L,
+            UUID.randomUUID().toString(),
+            PrivacyLevel.LOW,
+            null,
+            0,
+            "normal" // 新增的 status 字段
         ));
 
         // 更新邀请码为已使用状态

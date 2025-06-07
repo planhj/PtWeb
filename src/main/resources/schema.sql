@@ -310,24 +310,25 @@ create table user
 (
     id                    bigint auto_increment
         primary key,
-    avatar                varchar(255)   not null,
-    create_at             datetime(6)    not null,
-    custom_title          varchar(255)   not null,
-    downloaded            bigint         not null,
-    email                 varchar(255)   not null,
-    passkey               varchar(255)   not null,
-    password              varchar(255)   not null,
-    personal_access_token varchar(255)   not null,
-    privacy_level         varchar(10)    not null,
-    real_downloaded       bigint         not null,
-    real_uploaded         bigint         not null,
-    score                 decimal(38, 2) not null,
-    seeding_time          bigint         not null,
-    signature             varchar(255)   not null,
-    uploaded              bigint         not null,
-    username              varchar(255)   not null,
-    last_sign_in_date     date           null,
-    continuous_days       int default 0  null,
+    avatar                varchar(255)                 not null,
+    create_at             datetime(6)                  not null,
+    custom_title          varchar(255)                 not null,
+    downloaded            bigint                       not null,
+    email                 varchar(255)                 not null,
+    passkey               varchar(255)                 not null,
+    password              varchar(255)                 not null,
+    personal_access_token varchar(255)                 not null,
+    privacy_level         varchar(10)                  not null,
+    real_downloaded       bigint                       not null,
+    real_uploaded         bigint                       not null,
+    score                 decimal(38, 2)               not null,
+    seeding_time          bigint                       not null,
+    signature             varchar(255)                 not null,
+    uploaded              bigint                       not null,
+    username              varchar(255)                 not null,
+    last_sign_in_date     date                         null,
+    continuous_days       int         default 0        null,
+    status                varchar(32) default 'normal' null,
     constraint UK2v3v0uxl1rke2bks4g123axwq
         unique (passkey),
     constraint UKob8kqyqqgmefl0aco34akdtpe
@@ -535,4 +536,19 @@ CREATE TABLE password_reset_token (
                                       user_id BIGINT NOT NULL,              -- 对应用户 ID
                                       token VARCHAR(128) NOT NULL UNIQUE,   -- 重置用的 token，唯一
                                       expire_time DATETIME NOT NULL         -- 过期时间
+);
+CREATE TABLE email_change_token (
+                                    user_id BIGINT NOT NULL,
+                                    new_email VARCHAR(255) NOT NULL,
+                                    token VARCHAR(64) PRIMARY KEY,
+                                    expire_time DATETIME NOT NULL
+);
+
+CREATE TABLE user_monthly_stats (
+                                    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                    user_id BIGINT NOT NULL,
+                                    month VARCHAR(7) NOT NULL, -- 格式如 '2024-06'
+                                    uploaded BIGINT NOT NULL DEFAULT 0, -- 本月上传字节数
+                                    seeding_time BIGINT NOT NULL DEFAULT 0, -- 本月做种秒数
+                                    UNIQUE KEY uk_user_month (user_id, month)
 );

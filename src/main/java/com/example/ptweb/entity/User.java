@@ -69,5 +69,13 @@ public class User {
     @TableField("continuous_days")
     private Integer continuousDays;
 
+    private String status;
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }
