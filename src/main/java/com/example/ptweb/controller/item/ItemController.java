@@ -1,5 +1,6 @@
 package com.example.ptweb.controller.item;
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.example.ptweb.entity.item_categories;
 import com.example.ptweb.service.itemService;
 import com.example.ptweb.service.itemService.PurchaseResult;
@@ -30,18 +31,17 @@ public class ItemController {
     /**
      * 用户兑换商品
      */
-    @PostMapping("/exchange")
-    public ResponseEntity<?> exchangeItem(
-            @RequestParam int userId,
-            @RequestParam int itemId,
-            @RequestParam int quantity) {
+    @PostMapping("/exchange/{itemId}")
+    public ResponseEntity<?> exchangeItem(@PathVariable long itemId) {
+        Long userId = StpUtil.getLoginIdAsLong();
         try {
-            PurchaseResult result = itemService.exchangeItem(userId, itemId, quantity);
+            PurchaseResult result = itemService.exchangeItem(userId, itemId, 1); // 数量写死为1
             return ResponseEntity.ok(result);
         } catch (BusinessException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
 
     //测试类
     @GetMapping("/ping")

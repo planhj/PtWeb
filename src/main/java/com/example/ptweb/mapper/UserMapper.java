@@ -35,10 +35,10 @@ public interface UserMapper extends BaseMapper<User> {
     List<User> findByUsernameContains(@Param("usernamePart") String usernamePart);
 
     @Update("UPDATE user SET uploaded = uploaded + #{amount} WHERE id = #{userId}")
-    int increaseUserUpload(@Param("userId") int userId, @Param("amount") long amount);
+    int increaseUserUpload(@Param("userId") long userId, @Param("amount") long amount);
 
     // 增加下载量
     @Update("UPDATE user SET downloaded = downloaded + #{amount} WHERE id = #{userId}")
-    int increaseUserDownload(@Param("userId") int userId, @Param("amount") long amount);
+    int increaseUserDownload(@Param("userId") long userId, @Param("amount") long amount);
 
 }
