@@ -24,11 +24,9 @@ public class UserController {
     private static final String UPLOAD_DIR = System.getProperty("user.dir") + "/uploads/avatars/";
 
 
-    @PutMapping("/{id}")
-    public String updateUser(@PathVariable long id, @RequestBody User user) {
-        if (id != user.getId()) {
-            return "User ID in path and body do not match.";
-        }
+    @PutMapping("/update")
+    public String updateUser(@RequestBody User user) {
+        Long userId = StpUtil.getLoginIdAsLong();
         userService.updateUser(user);
         return "User updated successfully.";
     }

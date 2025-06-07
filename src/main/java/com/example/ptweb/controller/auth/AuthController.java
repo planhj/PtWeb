@@ -210,7 +210,7 @@ public class AuthController {
         passwordResetTokenMapper.insert(resetToken);
 
         // 发送邮件（伪代码）
-        mailService.send(email, "重置密码", "点击链接重置: https://yourdomain.com/reset-password?token=" + token);
+        mailService.send(email, "重置密码", "点击链接重置: http://localhost:3004/resetPassword?token=" + token);
         return ResponseEntity.ok("重置邮件已发送");
     }
 
