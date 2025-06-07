@@ -116,17 +116,18 @@ public class AnnounceService {
         peer.setDownloadSpeed(downloadSpeed);
         peerService.save(peer);
 
-        // 更新 User
+// 更新 User
         user.setRealDownloaded(user.getRealDownloaded() + downloadedOffset);
         user.setRealUploaded(user.getRealUploaded() + uploadedOffset);
-//        long promoUp = (long) user.getGroup().getPromotionPolicy().applyUploadRatio(lastDownloaded);
-//        long promoDown = (long) user.getGroup().getPromotionPolicy().applyDownloadRatio(lastUploaded);
         PromotionPolicy promotionPolicy = promotionService.getPromotionPolicy(torrent.getPromotionPolicyId());
         long promoUp = (long) (uploadedOffset*promotionPolicy.getUploadRatio()* user.getUploadedRatio());
         long promoDown = (long) (downloadedOffset*promotionPolicy.getDownloadRatio()* user.getDownloadRatio());
         user.setUploaded(user.getUploaded() + promoUp);
         user.setDownloaded(user.getDownloaded() + promoDown);
         user.setSeedingTime(user.getSeedingTime() + announceInterval);
+
+// 新增：统计到月度表
+        userService.addUploadAndSeeding(user.getId(), promoUp, announceInterval / 1000);
         // 更新 TransferHistory
         TransferHistory history = transferHistoryService.getTransferHistory(user, torrent);
         if (history != null) {

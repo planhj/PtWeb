@@ -1,4 +1,3 @@
-use pt;
 create table categories
 (
     id   bigint auto_increment
@@ -12,6 +11,15 @@ create table categories
 
 create index IDXoul14ho7bctbefv8jywp5v3i2
     on categories (slug);
+
+create table email_change_token
+(
+    user_id     bigint       not null,
+    new_email   varchar(255) not null,
+    token       varchar(64)  not null
+        primary key,
+    expire_time datetime     not null
+);
 
 create table forum_sections
 (
@@ -67,6 +75,17 @@ create table login_history
 
 create index IDX3lft44makrxommxm63k7xj77d
     on login_history (login_time);
+
+create table password_reset_token
+(
+    id          bigint auto_increment
+        primary key,
+    user_id     bigint       not null,
+    token       varchar(128) not null,
+    expire_time datetime     not null,
+    constraint token
+        unique (token)
+);
 
 create table promotion_policies
 (
@@ -318,7 +337,6 @@ create table user
     passkey               varchar(255)   not null,
     password              varchar(255)   not null,
     personal_access_token varchar(255)   not null,
-    privacy_level         varchar(10)    not null,
     real_downloaded       bigint         not null,
     real_uploaded         bigint         not null,
     score                 decimal(38, 2) not null,
@@ -328,6 +346,7 @@ create table user
     username              varchar(255)   not null,
     last_sign_in_date     date           null,
     continuous_days       int default 0  null,
+    status                varchar(32)    null,
     constraint UK2v3v0uxl1rke2bks4g123axwq
         unique (passkey),
     constraint UKob8kqyqqgmefl0aco34akdtpe
@@ -530,9 +549,15 @@ create table transfer_history
         foreign key (torrent_id) references torrents (id)
 );
 
-CREATE TABLE password_reset_token (
-                                      id BIGINT AUTO_INCREMENT PRIMARY KEY, -- 主键 ID
-                                      user_id BIGINT NOT NULL,              -- 对应用户 ID
-                                      token VARCHAR(128) NOT NULL UNIQUE,   -- 重置用的 token，唯一
-                                      expire_time DATETIME NOT NULL         -- 过期时间
+create table user_monthly_stats
+(
+    id           bigint auto_increment
+        primary key,
+    user_id      bigint           not null,
+    month        varchar(7)       not null,
+    uploaded     bigint default 0 not null,
+    seeding_time bigint default 0 not null,
+    constraint uk_user_month
+        unique (user_id, month)
 );
+

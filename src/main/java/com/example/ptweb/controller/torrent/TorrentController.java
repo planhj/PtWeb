@@ -286,5 +286,31 @@ public class TorrentController {
         return new DeadSeedResponseDTO("该种子做种人数少，并且您曾拥有资源。做种时做种积分X5直到做种人数>3", deadSeedDTOs);
     }
 
+    // src/main/java/com/example/ptweb/controller/torrent/TorrentController.java
+    @PostMapping("/hot")
+    public TorrentSearchResultResponseDTO hot(@RequestBody(required = false) @Nullable SearchTorrentRequestDTO searchRequestDTO) {
+        if (searchRequestDTO == null) {
+            searchRequestDTO = new SearchTorrentRequestDTO();
+        }
+        if (searchRequestDTO.getEntriesPerPage() == 0) {
+            searchRequestDTO.setEntriesPerPage(10);
+        }
+        IPage<Torrent> page = torrentService.searchHot(searchRequestDTO);
+
+        List<TorrentBasicResponseDTO> dtoList = page.getRecords().stream()
+                .map(torrent -> {
+                    Category category = categoryService.getCategory(torrent.getCategoryId());
+                    PromotionPolicy promotionPolicy = promotionService.getPromotionPolicy(torrent.getPromotionPolicyId());
+                    List<String> tagNames = tagService.getTagNamesByIds(torrent.getTag());
+                    return new TorrentBasicResponseDTO(torrent, category, promotionPolicy, tagNames);
+                })
+                .toList();
+
+        long totalElements = page.getTotal();
+        long totalPages = (totalElements + searchRequestDTO.getEntriesPerPage() - 1) / searchRequestDTO.getEntriesPerPage();
+
+        return new TorrentSearchResultResponseDTO(totalElements, totalPages, dtoList);
+    }
+
 
 }

@@ -1,9 +1,7 @@
 package com.example.ptweb.controller.auth;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.example.ptweb.entity.User;
 import com.example.ptweb.service.UserService;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
-@Slf4j
 @RestController
 @RequestMapping("/users") // 统一入口路径
 public class UserController {
@@ -24,19 +21,21 @@ public class UserController {
     private static final String UPLOAD_DIR = System.getProperty("user.dir") + "/uploads/avatars/";
 
 
-    @PutMapping("/update")
-    public String updateUser(@RequestBody User user) {
-        Long userId = StpUtil.getLoginIdAsLong();
+    @PutMapping("/{id}")
+    public String updateUser(@PathVariable long id, @RequestBody User user) {
+        if (id != user.getId()) {
+            return "User ID in path and body do not match.";
+        }
         userService.updateUser(user);
         return "User updated successfully.";
     }
 
-    @PostMapping("/avatar")
-    public ResponseEntity<String> uploadAvatar( @RequestParam("file") MultipartFile file) {
+    @PostMapping("/{id}/avatar")
+    public ResponseEntity<String> uploadAvatar(@PathVariable long id, @RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body("File is empty");
         }
-        log.info('[' + "{}]头像", file.getOriginalFilename());
+
         try {
             File uploadDir = new File(UPLOAD_DIR);
             if (!uploadDir.exists()) {
@@ -52,7 +51,7 @@ public class UserController {
 
             String fileUrl = "/resources/avatars/" + fileName;
 
-            User user = userService.getUser(StpUtil.getLoginIdAsLong());
+            User user = userService.getUser(id);
             if (user == null) {
                 return ResponseEntity.notFound().build();
             }

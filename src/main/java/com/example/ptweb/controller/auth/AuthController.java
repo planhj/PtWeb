@@ -9,7 +9,6 @@ import com.example.ptweb.controller.auth.dto.request.RegisterRequestDTO;
 import com.example.ptweb.controller.dto.response.LoginStatusResponseDTO;
 import com.example.ptweb.controller.dto.response.UserResponseDTO;
 import com.example.ptweb.controller.dto.response.UserSessionResponseDTO;
-import com.example.ptweb.entity.CustomTitle;
 import com.example.ptweb.entity.InviteCode;
 import com.example.ptweb.entity.PasswordResetToken;
 import com.example.ptweb.entity.User;
@@ -21,6 +20,7 @@ import com.example.ptweb.mapper.UserMapper;
 import com.example.ptweb.service.AuthenticationService;
 import com.example.ptweb.service.MailService;
 import com.example.ptweb.service.UserService;
+import com.example.ptweb.type.CustomTitle;
 import com.example.ptweb.util.IPUtil;
 import com.example.ptweb.util.PasswordHash;
 import jakarta.servlet.http.HttpServletRequest;
@@ -79,9 +79,14 @@ public class AuthController {
         if (user == null) user = userService.getUserByEmail(login.getUser());
         if (user == null) {
             log.info("IP {} tried to login with not exists username {}.",ip, login.getUser());
-            authenticationService.markUserLoginFail(ip); // Mark fail because it not use authenticate
+            authenticationService.markUserLoginFail(ip);
             authenticationService.checkAccountLoginAttempts(ip);
             throw new APIGenericException(AUTHENTICATION_FAILED);
+        }
+
+        // 新增：判断用户状态
+        if (!"normal".equalsIgnoreCase(user.getStatus())) {
+            throw new APIGenericException(AUTHENTICATION_FAILED, "账号已被封禁或不可用");
         }
 
         if(!authenticationService.authenticate(user,login.getPassword(),ip)){
@@ -156,7 +161,6 @@ public class AuthController {
             throw new APIGenericException(APIErrorCode.EMAIL_ALREADY_IN_USAGE);
         }
 
-        // 创建用户
         user = userService.save(new User(
                 0,
                 register.getEmail(),
@@ -172,7 +176,8 @@ public class AuthController {
                 0L,
                 UUID.randomUUID().toString(),
                 null,
-                0
+                0,
+                "normal"
         ));
 
         // 更新邀请码为已使用状态
