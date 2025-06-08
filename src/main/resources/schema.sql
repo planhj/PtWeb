@@ -2,7 +2,7 @@ create table categories
 (
     id   bigint auto_increment
         primary key,
-    icon varchar(255) not null,
+    icon varchar(255) nt null,
     name varchar(255) not null,
     slug varchar(255) not null,
     constraint UKoul14ho7bctbefv8jywp5v3i2
@@ -355,6 +355,17 @@ create table user
         unique (username)
 );
 
+
+CREATE TABLE forum_sections (
+                                id bigint not null AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+                                name VARCHAR(100) NOT NULL COMMENT '版块名称',
+                                description TEXT COMMENT '版块描述',
+                                display_order INT DEFAULT 0 COMMENT '显示顺序，数值越大越靠前',
+                                created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='论坛版块表';
+
+
 create table forum_posts
 (
     id         bigint auto_increment
@@ -366,7 +377,7 @@ create table forum_posts
     created_at datetime default CURRENT_TIMESTAMP null,
     updated_at datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     view_count int      default 0                 null,
-    viwe       int      default 0                 null,
+    view       int      default 0                 null,
     constraint forum_posts_ibfk_1
         foreign key (section_id) references forum_sections (id),
     constraint forum_posts_ibfk_2
@@ -381,7 +392,7 @@ create table forum_comments
     user_id    bigint                             not null,
     content    text                               not null,
     created_at datetime default CURRENT_TIMESTAMP null,
-    viwe       int      default 0                 null,
+    view       int      default 0                 null,
     constraint forum_comments_ibfk_1
         foreign key (post_id) references forum_posts (id),
     constraint forum_comments_ibfk_2
@@ -396,7 +407,7 @@ create table forum_ccomments
     user_id    bigint                             not null,
     content    text                               not null,
     created_at datetime default CURRENT_TIMESTAMP null,
-    viwe       int      default 0                 null,
+    view       int      default 0                 null,
     post_id    bigint                             not null,
     constraint forum_ccomments_ibfk_1
         foreign key (post_id) references forum_posts (id),

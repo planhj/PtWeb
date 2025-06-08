@@ -87,14 +87,17 @@ public class UserService {
         assessUsers();
     }
 
-    // 手动考核方法，供 Controller 调用
     public void assessUsers() {
         long minUploadBytes = 50L * 1024 * 1024 * 1024; // 50GB
         long minSeedingSeconds = 100L * 3600; // 100小时
+        String month = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM"));
 
         List<User> users = userMapper.selectNormalUsers();
         for (User user : users) {
-            if (user.getRealUploaded() < minUploadBytes || user.getSeedingTime() < minSeedingSeconds) {
+            UserMonthlyStats stats = userMonthlyStatsMapper.selectByUserIdAndMonth(user.getId(), month);
+            long uploaded = stats != null ? stats.getUploaded() : 0L;
+            long seedingTime = stats != null ? stats.getSeedingTime() : 0L;
+            if (uploaded < minUploadBytes || seedingTime < minSeedingSeconds) {
                 user.setStatus("banned");
                 userMapper.updateById(user);
             }

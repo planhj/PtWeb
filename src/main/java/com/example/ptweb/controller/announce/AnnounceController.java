@@ -134,7 +134,6 @@ public class AnnounceController {
             throw new InvalidAnnounceException("Invalid passkey.");
         }
         checkClient();
-        log.info("信息{}",gets);
         checkAnnounceFields(gets);
         String peerId = gets.get("peer_id");
         long left = Long.parseLong(gets.get("left"));

@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.ptweb.type.CustomTitle;
 import lombok.*;
-
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Timestamp;

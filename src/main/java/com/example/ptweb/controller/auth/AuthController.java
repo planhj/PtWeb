@@ -32,6 +32,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import com.example.ptweb.controller.auth.dto.request.RegisterDTO;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -215,7 +216,7 @@ public class AuthController {
         passwordResetTokenMapper.insert(resetToken);
 
         // 发送邮件（伪代码）
-        mailService.send(email, "重置密码", "点击链接重置: http://localhost:3004/resetPassword?token=" + token);
+        mailService.send(email, "重置密码", "点击链接重置: http://localhost:3000/resetPassword?token=" + token);
         return ResponseEntity.ok("重置邮件已发送");
     }
 
@@ -230,5 +231,47 @@ public class AuthController {
         userMapper.updateById(user);
         passwordResetTokenMapper.deleteById(resetToken.getId());
         return ResponseEntity.ok("密码重置成功");
+    }
+    @PostMapping("/admin_register")
+    @Transactional
+    public UserSessionResponseDTO admin_register(@RequestBody RegisterDTO register) {
+        log.info("Received register request: {}", register.getEmail());
+        if (StringUtils.isEmpty(register.getEmail())) {
+            throw new APIGenericException(MISSING_PARAMETERS, "Email parameter is required");
+        }
+        if (StringUtils.isEmpty(register.getUsername())) {
+            throw new APIGenericException(MISSING_PARAMETERS, "Username parameter is required");
+        }
+        if (StringUtils.isEmpty(register.getPassword())) {
+            throw new APIGenericException(MISSING_PARAMETERS, "Password parameter is required");
+        }
+        User user = userService.getUserByUsername(register.getUsername());
+        if (user != null) {
+            throw new APIGenericException(APIErrorCode.USERNAME_ALREADY_IN_USAGE);
+        }
+        user = userService.getUserByEmail(register.getEmail());
+        if (user != null) {
+            throw new APIGenericException(APIErrorCode.EMAIL_ALREADY_IN_USAGE);
+        }
+        user = userService.save(new User(
+                0,
+                register.getEmail(),
+                PasswordHash.hash(register.getPassword()),
+                register.getUsername(),
+                UUID.randomUUID().toString(),
+                Timestamp.from(Instant.now()),
+                "https://www.baidu.com/favicon.ico",
+                CustomTitle.NORMAL,
+                "这个用户很懒，还没有个性签名",
+                0L, 0L, 0L, 0L,
+                BigDecimal.ZERO,
+                0L,
+                UUID.randomUUID().toString(),
+                null,
+                0,
+                "normal"
+        ));
+        StpUtil.login(user.getId());
+        return getUserBasicInformation(user);
     }
 }

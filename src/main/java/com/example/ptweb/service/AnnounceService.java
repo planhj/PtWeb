@@ -120,8 +120,9 @@ public class AnnounceService {
         user.setRealDownloaded(user.getRealDownloaded() + downloadedOffset);
         user.setRealUploaded(user.getRealUploaded() + uploadedOffset);
         PromotionPolicy promotionPolicy = promotionService.getPromotionPolicy(torrent.getPromotionPolicyId());
-        long promoUp = (long) (uploadedOffset*promotionPolicy.getUploadRatio()* user.getUploadedRatio());
-        long promoDown = (long) (downloadedOffset*promotionPolicy.getDownloadRatio()* user.getDownloadRatio());
+        long promoUp = (long) promotionPolicy.applyUploadRatio(uploadedOffset);
+        long promoDown = (long) promotionPolicy.applyDownloadRatio(downloadedOffset);
+
         user.setUploaded(user.getUploaded() + promoUp);
         user.setDownloaded(user.getDownloaded() + promoDown);
         user.setSeedingTime(user.getSeedingTime() + announceInterval);
@@ -161,7 +162,7 @@ public class AnnounceService {
             BigDecimal delta = totalBonus.subtract(bonusGiven);
             if (delta.compareTo(BigDecimal.ZERO) > 0) {
                 user.setScore(user.getScore().add(delta));
-                log.info("用户 {} 积分增加：{} 倍率{}", user.getUsername(), delta,user.getUploadedRatio());
+                log.info("用户 {} 积分增加：{}", user.getUsername(), delta);
                 history.setBonusGiven(bonusGiven.add(delta));
                 log.info("transfer{}",history.getBonusGiven());
             }
