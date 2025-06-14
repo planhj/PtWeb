@@ -6,6 +6,8 @@ import com.example.ptweb.entity.User;
 import com.example.ptweb.mapper.UserMapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,7 @@ import java.util.List;
 
 @Service
 public class UserService {
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
     @Autowired
     private UserMapper userMapper;
 
@@ -67,6 +70,7 @@ public class UserService {
     public void addUploadAndSeeding(long userId, long uploadBytes, long seedingSeconds) {
         String month = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM"));
         UserMonthlyStats stats = userMonthlyStatsMapper.selectByUserIdAndMonth(userId, month);
+        log.info(uploadBytes +"qqqqqqqq");
         if (stats == null) {
             stats = new UserMonthlyStats();
             stats.setUserId(userId);

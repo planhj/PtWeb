@@ -6,6 +6,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.example.ptweb.controller.Forum.dto.ForumCommentDTO;
 import com.example.ptweb.entity.ForumComment;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,6 +31,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/forum/comments")
 @RequiredArgsConstructor
+@Slf4j
 public class ForumCommentController {
 
     private final ForumCommentService commentService;

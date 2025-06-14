@@ -32,6 +32,24 @@ public class itemService {
         }
 
         item_categories item = getAvailableItem(itemId);
+        if (item.getId() == 2) {
+            long currentDownloaded = userMapper.getDownloadedByUserId(userId);
+            long minRequired = 1024L * 1024 * 5000;
+            if (currentDownloaded < minRequired) {
+                throw new BusinessException("当前下载量不足5GB，无法兑换该下载量商品");
+            }
+        }
+        User user = userMapper.selectById(userId);
+        if (item.getId() == 3L) {
+            if (CustomTitle.SVIP.equals(user.getCustomTitle())) {
+                throw new BusinessException("无法降级为vip");
+            }
+        }
+        if (item.getId() == 4L) {
+            if (CustomTitle.SVIP.equals(user.getCustomTitle())) {
+                throw new BusinessException("无法重复购买");
+            }
+        }
         long totalCost = calculateTotalCost(userId,item, quantity);
 
         deductUserPoints(userId, totalCost);
@@ -46,7 +64,7 @@ public class itemService {
 
     // ✅ 增加上传/下载量
     private void applySpecialItemEffect(long userId, item_categories item, long quantity) {
-        long amountPerUnit = 1024L * 1024 * 500; // 每件增加500MB（单位：byte）
+        long amountPerUnit = 1024L * 1024 * 5000;
 
         if (item.getId() == 1) {
             userMapper.increaseUserUpload(userId, amountPerUnit * quantity);

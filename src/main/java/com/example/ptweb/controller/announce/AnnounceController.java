@@ -123,6 +123,7 @@ public class AnnounceController {
 
     @GetMapping("/announce")
     public ResponseEntity<String> announce(@RequestParam Map<String, String> gets) throws FixedAnnounceException, RetryableAnnounceException {
+        log.info("上报信息{}",gets);
         long ns = System.nanoTime();
         String[] ipv4 = request.getParameterValues("ipv4");
         String[] ipv6 = request.getParameterValues("ipv6");

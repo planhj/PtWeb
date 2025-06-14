@@ -40,9 +40,15 @@ public interface UserMapper extends BaseMapper<User> {
     List<User> selectNormalUsers();
     @Update("UPDATE user SET uploaded = uploaded + #{amount} WHERE id = #{userId}")
     int increaseUserUpload(@Param("userId") long userId, @Param("amount") long amount);
+    @Select("SELECT downloaded FROM user WHERE id = #{userId}")
+    Long getDownloadedByUserId(@Param("userId") long userId);
 
-    // 增加下载量
-    @Update("UPDATE user SET downloaded = downloaded - #{amount} WHERE id = #{userId}")
+    // 减少下载量
+    @Update("""
+    UPDATE user
+    SET downloaded = downloaded - #{amount}
+    WHERE id = #{userId} AND downloaded >= #{amount}
+""")
     int increaseUserDownload(@Param("userId") long userId, @Param("amount") long amount);
 
 }

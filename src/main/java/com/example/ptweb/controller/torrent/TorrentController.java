@@ -283,7 +283,7 @@ public class TorrentController {
             return new DeadSeedResponseDTO("当前没有资源可保种。", List.of());
         }
 
-        return new DeadSeedResponseDTO("该种子做种人数少，并且您曾拥有资源。做种时做种积分X5直到做种人数>3，做种时积分x5", deadSeedDTOs);
+        return new DeadSeedResponseDTO("该种子做种人数少，并且您曾拥有资源。做种时做种积分×5上传量×2直到做种人数>3", deadSeedDTOs);
     }
 
     // src/main/java/com/example/ptweb/controller/torrent/TorrentController.java
