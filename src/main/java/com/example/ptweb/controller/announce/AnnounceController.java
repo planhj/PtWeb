@@ -123,6 +123,7 @@ public class AnnounceController {
 
     @GetMapping("/announce")
     public ResponseEntity<String> announce(@RequestParam Map<String, String> gets) throws FixedAnnounceException, RetryableAnnounceException {
+        log.info("上报信息{}",gets);
         long ns = System.nanoTime();
         String[] ipv4 = request.getParameterValues("ipv4");
         String[] ipv6 = request.getParameterValues("ipv6");
@@ -134,7 +135,6 @@ public class AnnounceController {
             throw new InvalidAnnounceException("Invalid passkey.");
         }
         checkClient();
-        log.info("信息{}",gets);
         checkAnnounceFields(gets);
         String peerId = gets.get("peer_id");
         long left = Long.parseLong(gets.get("left"));

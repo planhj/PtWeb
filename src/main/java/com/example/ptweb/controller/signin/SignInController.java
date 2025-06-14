@@ -10,14 +10,13 @@ import org.springframework.web.bind.annotation.*;
 public class SignInController {
 
     private final SignInService signInService;
-
     public SignInController(SignInService signInService) {
         this.signInService = signInService;
     }
 
     @PostMapping
     public ResponseEntity<?> signIn() {
-        Long userId = StpUtil.getLoginIdAsLong(); // 使用 Sa-Token 获取当前登录用户 ID
+        Long userId = StpUtil.getLoginIdAsLong();
         signInService.signIn(userId);
         return ResponseEntity.ok("签到成功");
     }

@@ -210,6 +210,7 @@ public class TorrentController {
 
     @GetMapping("/download/{info_hash}")
     public HttpEntity<?> download(@PathVariable("info_hash") String infoHash, @RequestParam @NotNull Map<String, String> params) throws IOException, TorrentException {
+        log.info("Download torrent {}", infoHash);
         User user;
         if (params.containsKey("passkey")) {
             user = authenticationService.authenticate(params.get("passkey"), IPUtil.getRequestIp(request));
@@ -282,7 +283,7 @@ public class TorrentController {
             return new DeadSeedResponseDTO("当前没有资源可保种。", List.of());
         }
 
-        return new DeadSeedResponseDTO("该种子做种人数少，并且您曾拥有资源。做种时做种积分X5直到做种人数>3", deadSeedDTOs);
+        return new DeadSeedResponseDTO("该种子做种人数少，并且您曾拥有资源。做种时做种积分×5上传量×2直到做种人数>3", deadSeedDTOs);
     }
 
     // src/main/java/com/example/ptweb/controller/torrent/TorrentController.java
@@ -307,9 +308,7 @@ public class TorrentController {
 
         long totalElements = page.getTotal();
         long totalPages = (totalElements + searchRequestDTO.getEntriesPerPage() - 1) / searchRequestDTO.getEntriesPerPage();
-
         return new TorrentSearchResultResponseDTO(totalElements, totalPages, dtoList);
     }
-
 
 }

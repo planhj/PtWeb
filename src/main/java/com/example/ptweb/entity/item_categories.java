@@ -43,5 +43,8 @@ public class item_categories {
         return price;
     }
 
+    public long getId(){
+        return categoryId;
+    }
 
 }
