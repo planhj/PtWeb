@@ -5,6 +5,7 @@ import com.example.ptweb.entity.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 
@@ -34,7 +35,20 @@ public interface UserMapper extends BaseMapper<User> {
     // 根据 username 模糊查询
     @Select("SELECT * FROM user WHERE username LIKE CONCAT('%', #{usernamePart}, '%')")
     List<User> findByUsernameContains(@Param("usernamePart") String usernamePart);
-
+    
     @Select("SELECT * FROM user WHERE status = 'normal'")
     List<User> selectNormalUsers();
+    @Update("UPDATE user SET uploaded = uploaded + #{amount} WHERE id = #{userId}")
+    int increaseUserUpload(@Param("userId") long userId, @Param("amount") long amount);
+    @Select("SELECT downloaded FROM user WHERE id = #{userId}")
+    Long getDownloadedByUserId(@Param("userId") long userId);
+
+    // 减少下载量
+    @Update("""
+    UPDATE user
+    SET downloaded = downloaded - #{amount}
+    WHERE id = #{userId} AND downloaded >= #{amount}
+""")
+    int increaseUserDownload(@Param("userId") long userId, @Param("amount") long amount);
+
 }

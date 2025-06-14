@@ -6,6 +6,8 @@ import com.example.ptweb.entity.User;
 import com.example.ptweb.mapper.UserMapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,7 @@ import java.util.List;
 
 @Service
 public class UserService {
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
     @Autowired
     private UserMapper userMapper;
 
@@ -67,6 +70,7 @@ public class UserService {
     public void addUploadAndSeeding(long userId, long uploadBytes, long seedingSeconds) {
         String month = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM"));
         UserMonthlyStats stats = userMonthlyStatsMapper.selectByUserIdAndMonth(userId, month);
+        log.info(uploadBytes +"qqqqqqqq");
         if (stats == null) {
             stats = new UserMonthlyStats();
             stats.setUserId(userId);
@@ -87,14 +91,17 @@ public class UserService {
         assessUsers();
     }
 
-    // 手动考核方法，供 Controller 调用
     public void assessUsers() {
         long minUploadBytes = 50L * 1024 * 1024 * 1024; // 50GB
         long minSeedingSeconds = 100L * 3600; // 100小时
+        String month = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM"));
 
         List<User> users = userMapper.selectNormalUsers();
         for (User user : users) {
-            if (user.getRealUploaded() < minUploadBytes || user.getSeedingTime() < minSeedingSeconds) {
+            UserMonthlyStats stats = userMonthlyStatsMapper.selectByUserIdAndMonth(user.getId(), month);
+            long uploaded = stats != null ? stats.getUploaded() : 0L;
+            long seedingTime = stats != null ? stats.getSeedingTime() : 0L;
+            if (uploaded < minUploadBytes || seedingTime < minSeedingSeconds) {
                 user.setStatus("banned");
                 userMapper.updateById(user);
             }

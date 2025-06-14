@@ -28,5 +28,5 @@ public class ForumPost {
     @TableField("updated_at")
     private LocalDateTime updatedAt;
 
-    private Integer views;
+    private Integer view;
 }

@@ -2,6 +2,8 @@ package com.example.ptweb.controller.Forum;
 
 
 
+import cn.dev33.satoken.stp.StpUtil;
+import com.example.ptweb.controller.Forum.dto.ForumCcommentDTO;
 import com.example.ptweb.entity.ForumCcomment;
 import com.example.ptweb.entity.ForumComment;
 import com.example.ptweb.service.*;
@@ -29,23 +31,21 @@ public class ForumCcommentController {
     private final ForumCcommentService ccommentService;
 
     @GetMapping("/{post_id}/{comment_id}")
-    public List<ForumCcomment> getCcommentsByComment(
+    public List<ForumCcommentDTO> getCcommentsByComment(
             @PathVariable("post_id") Long postId,
             @PathVariable("comment_id") Long commentId) {
-
-        // 你可以根据需要用postId，或者仅仅传给service commentId
-        // 这里示例只用commentId查询
-        return ccommentService.getCcommentsByCommentId(commentId);
+        // 这里暂时没用postId，传给service commentId即可
+        return ccommentService.getCcommentDTOsByCommentId(commentId);
     }
 
-    @PostMapping("/{post_id}/{comment_id}/{user_id}")
-    public ForumCcomment createComment(@PathVariable("post_id") Long postId,
-                                       @PathVariable("comment_id") Long comentId,
-                                       @PathVariable("user_id") Long userId,
-                                       @RequestBody ForumCcomment ccomment) {
+    @PostMapping("/{post_id}/{comment_id}")
+    public ForumCcommentDTO createComment(@PathVariable("post_id") Long postId,
+                                          @PathVariable("comment_id") Long comentId,
+                                          @RequestBody ForumCcomment ccomment) {
+        Long userId = StpUtil.getLoginIdAsLong();
         ccomment.setCommentId(comentId);
         ccomment.setUserId(userId);
-        return ccommentService.createCcomment(ccomment);
+        return ccommentService.createCcomment(ccomment, postId);
     }
 
     @PutMapping("/{id}")
