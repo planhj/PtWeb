@@ -2,6 +2,7 @@ package com.example.ptweb.controller.Forum;
 
 
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.example.ptweb.controller.Forum.dto.ForumPostDTO;
 import com.example.ptweb.entity.ForumPost;
 import lombok.RequiredArgsConstructor;
@@ -48,10 +49,10 @@ public class ForumPostController {
     return postService.getPostsWithUserInfoBySection(section_id);
     }
 
-    @PostMapping("/section/{section_id}/{user_id}")
+    @PostMapping("/section/{section_id}")
     public ForumPostDTO createPost(@PathVariable("section_id") Long sectionId,
-                                   @PathVariable("user_id") Long userId,
                                    @RequestBody ForumPost post) {
+        Long userId = StpUtil.getLoginIdAsLong();
         post.setSectionId(sectionId);
         post.setUserId(userId);
         return postService.createPost(post);

@@ -1,6 +1,7 @@
 package com.example.ptweb.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
@@ -12,11 +13,17 @@ public class PasswordResetToken {
     @TableId(type = IdType.AUTO)
     private Long id;
 
+    @TableField("user_id")
     private Long userId;
 
+    @TableField("token")
     private String token;
 
+    @TableField("expire_time")
     private LocalDateTime expireTime;
+
+    public PasswordResetToken() {
+    }
 
     public PasswordResetToken(Long userId, String token, LocalDateTime expireTime) {
         this.userId = userId;

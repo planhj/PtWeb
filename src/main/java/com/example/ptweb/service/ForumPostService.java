@@ -102,6 +102,8 @@ public class ForumPostService extends ServiceImpl<ForumPostMapper, ForumPost> {
 
             ForumPostDTO dto = new ForumPostDTO();
             dto.setId(post.getId());
+            dto.setUsername(user.getUsername());
+            dto.setAvatar(user.getAvatar());
             dto.setSectionId(post.getSectionId());
             dto.setUserId(post.getUserId());
             dto.setTitle(post.getTitle());
@@ -109,8 +111,7 @@ public class ForumPostService extends ServiceImpl<ForumPostMapper, ForumPost> {
             dto.setCreatedAt(post.getCreatedAt());
             dto.setUpdatedAt(post.getUpdatedAt());
             dto.setView(post.getView());
-            dto.setUsername(user.getUsername());
-            dto.setAvatar(user.getAvatar());
+
 
             dtos.add(dto);
         }

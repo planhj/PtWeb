@@ -37,10 +37,10 @@ public class TorrentPromotionAdjustJob extends QuartzJobBean {
                 torrent.setPromotionPolicyId(2L);
                 updated++;
             } else if (lowSeeder) {
-                torrent.setPromotionPolicyId(1L);
+                torrent.setPromotionPolicyId(3L);
                 updated++;
             }else{
-                torrent.setPromotionPolicyId(3L);
+                torrent.setPromotionPolicyId(1L);
                 updated++;
             }
         }
