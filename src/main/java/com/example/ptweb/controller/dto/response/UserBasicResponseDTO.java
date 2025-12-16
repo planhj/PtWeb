@@ -21,7 +21,7 @@ public class UserBasicResponseDTO extends ResponsePojo {
     private String signature;
     private long downloaded;
     private long uploaded;
-    private BigDecimal score;
+    private double bonusPoints;
     private long seedingTime;
 
     public UserBasicResponseDTO(@NotNull User user) {
@@ -29,11 +29,11 @@ public class UserBasicResponseDTO extends ResponsePojo {
         this.username = user.getUsername();
         this.createAt = System.currentTimeMillis()-user.getCreateAt().getTime();
         this.avatar = user.getAvatar();
-        this.customTitle = user.getCustomTitle();
+        this.customTitle = user.getCustomTitle().getDescription();
         this.signature = user.getSignature();
         this.downloaded = user.getDownloaded();
         this.uploaded = user.getUploaded();
-        this.score = user.getScore();
+        this.bonusPoints = user.getScore().doubleValue();
         this.seedingTime = user.getSeedingTime();
     }
 }

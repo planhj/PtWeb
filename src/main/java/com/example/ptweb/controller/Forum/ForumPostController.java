@@ -2,6 +2,8 @@ package com.example.ptweb.controller.Forum;
 
 
 
+import cn.dev33.satoken.stp.StpUtil;
+import com.example.ptweb.controller.Forum.dto.ForumPostDTO;
 import com.example.ptweb.entity.ForumPost;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,11 +44,15 @@ public class ForumPostController {
 //  public ForumPost getPostById(@PathVariable Long id) {
 //      return postService.getPostById(id);
 //   }
+   @GetMapping("/section/{section_id}/with-user")
+    public List<ForumPostDTO> getAllPostsWithUser(@PathVariable long section_id) {
+    return postService.getPostsWithUserInfoBySection(section_id);
+    }
 
-    @PostMapping("/section/{section_id}/{user_id}")
-    public ForumPost createPost(@PathVariable("section_id") Long sectionId,
-                                @PathVariable("user_id") Long userId,
-                                @RequestBody ForumPost post) {
+    @PostMapping("/section/{section_id}")
+    public ForumPostDTO createPost(@PathVariable("section_id") Long sectionId,
+                                   @RequestBody ForumPost post) {
+        Long userId = StpUtil.getLoginIdAsLong();
         post.setSectionId(sectionId);
         post.setUserId(userId);
         return postService.createPost(post);

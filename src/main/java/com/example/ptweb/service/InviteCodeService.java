@@ -23,7 +23,7 @@ public class InviteCodeService {
 
     public List<InviteCode> getInviteCodesByCreatorId(Long userId) {
         return inviteCodeMapper.selectList(
-                new QueryWrapper<InviteCode>().eq("creator_id", userId)
+                new QueryWrapper<InviteCode>().eq("creator_id", userId).eq("used", false)
         );
     }
 

@@ -25,22 +25,22 @@ public class UserResponseDTO extends ResponsePojo {
     private long uploaded;
     private long realDownloaded;
     private long realUploaded;
-    private BigDecimal score;
+    private BigDecimal bonusPoints;
     private long seedingTime;
 
     public UserResponseDTO(@NotNull User user) {
         this.id = user.getId();
         this.email = user.getEmail();
         this.username = user.getUsername();
-        this.createdAt = user.getCreateAt().getTime();
+        this.createdAt = System.currentTimeMillis()-user.getCreateAt().getTime();
         this.avatar = user.getAvatar();
-        this.customTitle = user.getCustomTitle();
+        this.customTitle = user.getCustomTitle().getDescription();
         this.signature = user.getSignature();
         this.downloaded = user.getDownloaded();
         this.uploaded = user.getUploaded();
         this.realDownloaded = user.getRealDownloaded();
         this.realUploaded = user.getRealUploaded();
-        this.score = user.getScore();
+        this.bonusPoints = user.getScore();
         this.seedingTime = user.getSeedingTime();
     }
 }

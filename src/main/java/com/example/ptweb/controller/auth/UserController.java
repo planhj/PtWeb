@@ -4,7 +4,7 @@ import com.example.ptweb.entity.EmailChangeToken;
 import com.example.ptweb.service.EmailChangeTokenService;
 import com.example.ptweb.service.MailService;
 import java.time.LocalDateTime;
-import java.time.LocalDateTime;
+import com.example.ptweb.controller.auth.dto.request.ChangeEmailRequestDTO;
 import cn.dev33.satoken.stp.StpUtil;
 import com.example.ptweb.entity.User;
 import com.example.ptweb.service.UserService;
@@ -52,12 +52,12 @@ public class UserController {
     }
 
     @PostMapping("/change-email")
-    public String requestChangeEmail(@RequestParam String newEmail) {
+    public String requestChangeEmail(@RequestBody ChangeEmailRequestDTO request) {
         long userId = StpUtil.getLoginIdAsLong();
         String token = UUID.randomUUID().toString();
-        // 保存 token、userId、newEmail、过期时间到数据库（如 EmailChangeToken 表）
+        String newEmail = request.getNewEmail();
         emailChangeTokenService.saveToken(userId, newEmail, token, LocalDateTime.now().plusMinutes(30));
-        mailService.send(newEmail, "邮箱验证", "请点击链接验证: https://yourdomain.com/users/verify-email?token=" + token);
+        mailService.send(newEmail, "邮箱验证", "请点击链接验证: http://localhost:3000/verifyEmail?token=" + token);
         return "验证邮件已发送";
     }
 
@@ -74,6 +74,7 @@ public class UserController {
         emailChangeTokenService.deleteByToken(token);
         return "邮箱修改成功";
     }
+
     @PostMapping("/avatar")
     public ResponseEntity<String> uploadAvatar(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {

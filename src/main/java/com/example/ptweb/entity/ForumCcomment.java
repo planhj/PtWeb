@@ -23,8 +23,9 @@ public class ForumCcomment {
     @TableField("created_at")
     private LocalDateTime createdAt;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    @TableField("post_id")
+    private Long PostId;
 
-    private Integer views;
+
+    private Integer view;
 }

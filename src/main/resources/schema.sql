@@ -1,9 +1,8 @@
-use pt;
 create table categories
 (
     id   bigint auto_increment
         primary key,
-    icon varchar(255) not null,
+    icon varchar(255) nt null,
     name varchar(255) not null,
     slug varchar(255) not null,
     constraint UKoul14ho7bctbefv8jywp5v3i2
@@ -12,6 +11,15 @@ create table categories
 
 create index IDXoul14ho7bctbefv8jywp5v3i2
     on categories (slug);
+
+create table email_change_token
+(
+    user_id     bigint       not null,
+    new_email   varchar(255) not null,
+    token       varchar(64)  not null
+        primary key,
+    expire_time datetime     not null
+);
 
 create table forum_sections
 (
@@ -67,6 +75,17 @@ create table login_history
 
 create index IDX3lft44makrxommxm63k7xj77d
     on login_history (login_time);
+
+create table password_reset_token
+(
+    id          bigint auto_increment
+        primary key,
+    user_id     bigint       not null,
+    token       varchar(128) not null,
+    expire_time datetime     not null,
+    constraint token
+        unique (token)
+);
 
 create table promotion_policies
 (
@@ -310,25 +329,24 @@ create table user
 (
     id                    bigint auto_increment
         primary key,
-    avatar                varchar(255)                 not null,
-    create_at             datetime(6)                  not null,
-    custom_title          varchar(255)                 not null,
-    downloaded            bigint                       not null,
-    email                 varchar(255)                 not null,
-    passkey               varchar(255)                 not null,
-    password              varchar(255)                 not null,
-    personal_access_token varchar(255)                 not null,
-    privacy_level         varchar(10)                  not null,
-    real_downloaded       bigint                       not null,
-    real_uploaded         bigint                       not null,
-    score                 decimal(38, 2)               not null,
-    seeding_time          bigint                       not null,
-    signature             varchar(255)                 not null,
-    uploaded              bigint                       not null,
-    username              varchar(255)                 not null,
-    last_sign_in_date     date                         null,
-    continuous_days       int         default 0        null,
-    status                varchar(32) default 'normal' null,
+    avatar                varchar(255)   not null,
+    create_at             datetime(6)    not null,
+    custom_title          varchar(255)   not null,
+    downloaded            bigint         not null,
+    email                 varchar(255)   not null,
+    passkey               varchar(255)   not null,
+    password              varchar(255)   not null,
+    personal_access_token varchar(255)   not null,
+    real_downloaded       bigint         not null,
+    real_uploaded         bigint         not null,
+    score                 decimal(38, 2) not null,
+    seeding_time          bigint         not null,
+    signature             varchar(255)   not null,
+    uploaded              bigint         not null,
+    username              varchar(255)   not null,
+    last_sign_in_date     date           null,
+    continuous_days       int default 0  null,
+    status                varchar(32)    null,
     constraint UK2v3v0uxl1rke2bks4g123axwq
         unique (passkey),
     constraint UKob8kqyqqgmefl0aco34akdtpe
@@ -336,6 +354,17 @@ create table user
     constraint UKsb8bbouer5wak8vyiiy4pf2bx
         unique (username)
 );
+
+
+CREATE TABLE forum_sections (
+                                id bigint not null AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+                                name VARCHAR(100) NOT NULL COMMENT '版块名称',
+                                description TEXT COMMENT '版块描述',
+                                display_order INT DEFAULT 0 COMMENT '显示顺序，数值越大越靠前',
+                                created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='论坛版块表';
+
 
 create table forum_posts
 (
@@ -348,7 +377,7 @@ create table forum_posts
     created_at datetime default CURRENT_TIMESTAMP null,
     updated_at datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     view_count int      default 0                 null,
-    viwe       int      default 0                 null,
+    view       int      default 0                 null,
     constraint forum_posts_ibfk_1
         foreign key (section_id) references forum_sections (id),
     constraint forum_posts_ibfk_2
@@ -363,7 +392,7 @@ create table forum_comments
     user_id    bigint                             not null,
     content    text                               not null,
     created_at datetime default CURRENT_TIMESTAMP null,
-    viwe       int      default 0                 null,
+    view       int      default 0                 null,
     constraint forum_comments_ibfk_1
         foreign key (post_id) references forum_posts (id),
     constraint forum_comments_ibfk_2
@@ -378,7 +407,7 @@ create table forum_ccomments
     user_id    bigint                             not null,
     content    text                               not null,
     created_at datetime default CURRENT_TIMESTAMP null,
-    viwe       int      default 0                 null,
+    view       int      default 0                 null,
     post_id    bigint                             not null,
     constraint forum_ccomments_ibfk_1
         foreign key (post_id) references forum_posts (id),
@@ -531,24 +560,15 @@ create table transfer_history
         foreign key (torrent_id) references torrents (id)
 );
 
-CREATE TABLE password_reset_token (
-                                      id BIGINT AUTO_INCREMENT PRIMARY KEY, -- 主键 ID
-                                      user_id BIGINT NOT NULL,              -- 对应用户 ID
-                                      token VARCHAR(128) NOT NULL UNIQUE,   -- 重置用的 token，唯一
-                                      expire_time DATETIME NOT NULL         -- 过期时间
-);
-CREATE TABLE email_change_token (
-                                    user_id BIGINT NOT NULL,
-                                    new_email VARCHAR(255) NOT NULL,
-                                    token VARCHAR(64) PRIMARY KEY,
-                                    expire_time DATETIME NOT NULL
+create table user_monthly_stats
+(
+    id           bigint auto_increment
+        primary key,
+    user_id      bigint           not null,
+    month        varchar(7)       not null,
+    uploaded     bigint default 0 not null,
+    seeding_time bigint default 0 not null,
+    constraint uk_user_month
+        unique (user_id, month)
 );
 
-CREATE TABLE user_monthly_stats (
-                                    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-                                    user_id BIGINT NOT NULL,
-                                    month VARCHAR(7) NOT NULL, -- 格式如 '2024-06'
-                                    uploaded BIGINT NOT NULL DEFAULT 0, -- 本月上传字节数
-                                    seeding_time BIGINT NOT NULL DEFAULT 0, -- 本月做种秒数
-                                    UNIQUE KEY uk_user_month (user_id, month)
-);
