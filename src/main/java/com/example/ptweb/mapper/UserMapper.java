@@ -29,16 +29,26 @@ public interface UserMapper extends BaseMapper<User> {
     User findByPersonalAccessTokenIgnoreCase(@Param("personalAccessToken") String personalAccessToken);
 
     // 根据 email 模糊查询
+    @Select("SELECT * FROM user WHERE email LIKE CONCAT('%', #{emailPart}, '%')")
     List<User> findByEmailContains(@Param("emailPart") String emailPart);
 
     // 根据 username 模糊查询
+    @Select("SELECT * FROM user WHERE username LIKE CONCAT('%', #{usernamePart}, '%')")
     List<User> findByUsernameContains(@Param("usernamePart") String usernamePart);
-
+    
+    @Select("SELECT * FROM user WHERE status = 'normal'")
+    List<User> selectNormalUsers();
     @Update("UPDATE user SET uploaded = uploaded + #{amount} WHERE id = #{userId}")
-    int increaseUserUpload(@Param("userId") int userId, @Param("amount") long amount);
+    int increaseUserUpload(@Param("userId") long userId, @Param("amount") long amount);
+    @Select("SELECT downloaded FROM user WHERE id = #{userId}")
+    Long getDownloadedByUserId(@Param("userId") long userId);
 
-    // 增加下载量
-    @Update("UPDATE user SET downloaded = downloaded + #{amount} WHERE id = #{userId}")
-    int increaseUserDownload(@Param("userId") int userId, @Param("amount") long amount);
+    // 减少下载量
+    @Update("""
+    UPDATE user
+    SET downloaded = downloaded - #{amount}
+    WHERE id = #{userId} AND downloaded >= #{amount}
+""")
+    int increaseUserDownload(@Param("userId") long userId, @Param("amount") long amount);
 
 }

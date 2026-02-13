@@ -21,7 +21,7 @@ public class SignInService {
         this.userMapper = userMapper;
     }
 
-    public void signIn(Long userId) {
+    public SignInResult signIn(Long userId) {
         LocalDate today = LocalDate.now();
 
         // 获取用户信息
@@ -66,5 +66,43 @@ public class SignInService {
         signIn.setUserId(userId);
         signIn.setSignDate(today);
         signInMapper.insert(signIn);
+
+        return new SignInResult(true, score, "签到成功，获得" + score + "积分");
+    }
+
+    public static class SignInResult {
+        private boolean success;
+        private int score;
+        private String message;
+
+        public SignInResult(boolean success, int score, String message) {
+            this.success = success;
+            this.score = score;
+            this.message = message;
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public int getScore() {
+            return score;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setSuccess(boolean success) {
+            this.success = success;
+        }
+
+        public void setScore(int score) {
+            this.score = score;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
     }
 }

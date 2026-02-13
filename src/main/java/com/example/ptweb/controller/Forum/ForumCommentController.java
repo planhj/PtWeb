@@ -2,9 +2,11 @@ package com.example.ptweb.controller.Forum;
 
 
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.example.ptweb.controller.Forum.dto.ForumCommentDTO;
 import com.example.ptweb.entity.ForumComment;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,6 +31,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/forum/comments")
 @RequiredArgsConstructor
+@Slf4j
 public class ForumCommentController {
 
     private final ForumCommentService commentService;
@@ -40,10 +43,10 @@ public class ForumCommentController {
     }
 
 
-    @PostMapping("/post/{post_id}/{user_id}")
+    @PostMapping("/post/{post_id}")
     public ForumCommentDTO createComment(@PathVariable("post_id") Long postId,
-                                         @PathVariable("user_id") Long userId,
                                          @RequestBody ForumComment comment) {
+        Long userId = StpUtil.getLoginIdAsLong();
         comment.setPostId(postId);
         comment.setUserId(userId);
         return commentService.createComment(comment);

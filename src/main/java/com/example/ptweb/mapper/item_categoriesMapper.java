@@ -28,16 +28,16 @@ public interface item_categoriesMapper extends BaseMapper<item_categories>{
 
     // 查询用户积分余额
     @Select("SELECT score FROM user WHERE id = #{userId}")
-    BigDecimal getUserBonusPoints(@Param("userId") int userId);
+    BigDecimal getUserBonusPoints(@Param("userId") long userId);
 
     //扣除用户积分
     @Update("UPDATE user SET score = score - #{deduction} WHERE id = #{userId} AND score >= #{deduction}")
-    int deductUserPoints(@Param("userId") int userId, @Param("deduction") BigDecimal deduction);
+    int deductUserPoints(@Param("userId") long userId, @Param("deduction") BigDecimal deduction);
 
 
     // 增加用户积分
     @Update("UPDATE user SET score = score + #{addition} WHERE id = #{userId}")
-    int addUserPoints(@Param("userId") int userId, @Param("addition") BigDecimal addition);
+    int addUserPoints(@Param("userId") long userId, @Param("addition") BigDecimal addition);
 
 /*
     // 记录积分交易
@@ -48,13 +48,13 @@ public interface item_categoriesMapper extends BaseMapper<item_categories>{
     // 减少商品库存
     @Update("UPDATE item_categories SET stock = stock - #{quantity} " +
             "WHERE item_id = #{itemId} AND (stock IS NULL OR stock >= #{quantity})")
-    int reduceItemStock(@Param("itemId") int itemId, @Param("quantity") int quantity);
+    int reduceItemStock(@Param("itemId") long itemId, @Param("quantity") long quantity);
 
 
 
     // 查询库存
     @Select("SELECT stock FROM item_categories WHERE item_id = #{itemId}")
-    Integer checkItemStock(@Param("itemId") int itemId);
+    Integer checkItemStock(@Param("itemId") long itemId);
 
     // 查询所有 is_active = true 的商品
     @Select("SELECT * FROM item_categories WHERE is_active = TRUE")
